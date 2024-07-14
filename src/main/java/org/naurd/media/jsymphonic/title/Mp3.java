@@ -32,6 +32,7 @@ import java.io.FileOutputStream;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.mp3.MP3AudioHeader;
 import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.reference.GenreTypes;
 
 /**
@@ -81,17 +82,17 @@ public class Mp3 extends Title {
         if(tryReadTagInfo){
             try {
                 Tag MP3tag = AudioFileIO.read(f).getTag();
-                if(MP3tag.getFirstTitle().length() > 0){ titleName = MP3tag.getFirstTitle();} // Read field is it exist
-                if(MP3tag.getFirstArtist().length() > 0){ artistName = MP3tag.getFirstArtist();} // Read field is it exist
-                if(MP3tag.getFirstAlbum().length() > 0){ albumName = MP3tag.getFirstAlbum();} // Read field is it exist
-                if(MP3tag.getFirstGenre().length() > 0){ genre = MP3tag.getFirstGenre();} // Read field is it exist
-                if(MP3tag.getFirstYear().length() > 0){ year = Integer.parseInt(MP3tag.getFirstYear());} // Read field is it exist
-                if(MP3tag.getFirstTrack().length() > 0){ // Read field is it exist
-                    if(MP3tag.getFirstTrack().contains("/")){
-                        titleNumber = Integer.parseInt((MP3tag.getFirstTrack().split("/",2))[0]);
+                if(MP3tag.getFirst(FieldKey.TITLE).length() > 0){ titleName = MP3tag.getFirst(FieldKey.TITLE);} // Read field is it exist
+                if(MP3tag.getFirst(FieldKey.ARTIST).length() > 0){ artistName = MP3tag.getFirst(FieldKey.ARTIST);} // Read field is it exist
+                if(MP3tag.getFirst(FieldKey.ALBUM).length() > 0){ albumName = MP3tag.getFirst(FieldKey.ALBUM);} // Read field is it exist
+                if(MP3tag.getFirst(FieldKey.GENRE).length() > 0){ genre = MP3tag.getFirst(FieldKey.GENRE);} // Read field is it exist
+                if(MP3tag.getFirst(FieldKey.YEAR).length() > 0){ year = Integer.parseInt(MP3tag.getFirst(FieldKey.YEAR));} // Read field is it exist
+                if(MP3tag.getFirst(FieldKey.TRACK).length() > 0){ // Read field is it exist
+                    if(MP3tag.getFirst(FieldKey.TRACK).contains("/")){
+                        titleNumber = Integer.parseInt((MP3tag.getFirst(FieldKey.TRACK).split("/",2))[0]);
                     }
                     else{
-                        titleNumber = Integer.parseInt(MP3tag.getFirstTrack());
+                        titleNumber = Integer.parseInt(MP3tag.getFirst(FieldKey.TRACK));
                     }
                 }
                 try{
@@ -99,7 +100,7 @@ public class Mp3 extends Title {
                     Integer genreNumber = Integer.parseInt(genre);
                     // If this works (no exception thrown), convert it to a string
                     GenreTypes GenreList = GenreTypes.getInstanceOf();
-                    genre = GenreList.getNameForId(genreNumber);
+                    genre = GenreList.getValueForId(genreNumber);
                 }
                 catch(Exception e){
                     // If an exception has been thrown, try to see if the tag isn't surrounded by brakets "()" as it could be when tagged with iTunes: "(20)" stands for "Alternative"
@@ -107,7 +108,7 @@ public class Mp3 extends Title {
                         Integer genreNumber = Integer.parseInt(genre.replace("(", "").replace(")", ""));
                         // If this works (no exception thrown), convert it to a string
                         GenreTypes GenreList = GenreTypes.getInstanceOf();
-                        genre = GenreList.getNameForId(genreNumber);
+                        genre = GenreList.getValueForId(genreNumber);
                     }
                     catch(Exception ex){
                         // If an exception is thrown again, one assumes that the genre is already given as a string, and it is kept as it is

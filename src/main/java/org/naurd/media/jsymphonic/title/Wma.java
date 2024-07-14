@@ -30,6 +30,7 @@ package org.naurd.media.jsymphonic.title;
 import java.io.File;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
+import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 
 /**
@@ -70,12 +71,12 @@ public class Wma  extends Title {
         if(tryReadTagInfo){
             try {
                 Tag WMAtag = AudioFileIO.read(f).getTag();
-                if(WMAtag.getFirstTitle().length() > 0){ titleName = WMAtag.getFirstTitle();} // Read field is it exist
-                if(WMAtag.getFirstArtist().length() > 0){ artistName = WMAtag.getFirstArtist();} // Read field is it exist
-                if(WMAtag.getFirstAlbum().length() > 0){ albumName = WMAtag.getFirstAlbum();} // Read field is it exist
-                if(WMAtag.getFirstGenre().length() > 0){ genre = WMAtag.getFirstGenre();} // Read field is it exist
-                if(WMAtag.getFirstTrack().length() > 0){ titleNumber = Integer.parseInt(WMAtag.getFirstTrack());} // Read field is it exist
-                if(WMAtag.getFirstYear().length() > 0){ year = Integer.parseInt(WMAtag.getFirstYear());} // Read field is it exist
+                if(WMAtag.getFirst(FieldKey.TITLE).length() > 0){ titleName = WMAtag.getFirst(FieldKey.TITLE);} // Read field is it exist
+                if(WMAtag.getFirst(FieldKey.ARTIST).length() > 0){ artistName = WMAtag.getFirst(FieldKey.ARTIST);} // Read field is it exist
+                if(WMAtag.getFirst(FieldKey.ALBUM).length() > 0){ albumName = WMAtag.getFirst(FieldKey.ALBUM);} // Read field is it exist
+                if(WMAtag.getFirst(FieldKey.GENRE).length() > 0){ genre = WMAtag.getFirst(FieldKey.GENRE);} // Read field is it exist
+                if(WMAtag.getFirst(FieldKey.TRACK).length() > 0){ titleNumber = Integer.parseInt(WMAtag.getFirst(FieldKey.TRACK));} // Read field is it exist
+                if(WMAtag.getFirst(FieldKey.YEAR).length() > 0){ year = Integer.parseInt(WMAtag.getFirst(FieldKey.YEAR));} // Read field is it exist
             }
             catch (Exception ex) {
                 logger.warning("Exception while reading WMA tag for file: '" + f.getPath()+ "'. Exception: "+ex.getMessage());

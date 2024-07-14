@@ -29,6 +29,7 @@ package org.naurd.media.jsymphonic.title;
 
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
+import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 
 /**
@@ -62,12 +63,12 @@ public class Wav extends Title{
         if(tryReadTagInfo){
             try {
                 Tag WAVtag = AudioFileIO.read(f).getTag();
-                if(WAVtag.getFirstTitle().length() > 0){ titleName = WAVtag.getFirstTitle();} // Read field is it exist
-                if(WAVtag.getFirstArtist().length() > 0){ artistName = WAVtag.getFirstArtist();} // Read field is it exist
-                if(WAVtag.getFirstAlbum().length() > 0){ albumName = WAVtag.getFirstAlbum();} // Read field is it exist
-                if(WAVtag.getFirstGenre().length() > 0){ genre = WAVtag.getFirstGenre();} // Read field is it exist
-                if(WAVtag.getFirstTrack().length() > 0){ titleNumber = Integer.parseInt(WAVtag.getFirstTrack());} // Read field is it exist
-                if(WAVtag.getFirstYear().length() > 0){ year = Integer.parseInt(WAVtag.getFirstYear());} // Read field is it exist
+                if(WAVtag.getFirst(FieldKey.TITLE).length() > 0){ titleName = WAVtag.getFirst(FieldKey.TITLE);} // Read field is it exist
+                if(WAVtag.getFirst(FieldKey.ARTIST).length() > 0){ artistName = WAVtag.getFirst(FieldKey.ARTIST);} // Read field is it exist
+                if(WAVtag.getFirst(FieldKey.ALBUM).length() > 0){ albumName = WAVtag.getFirst(FieldKey.ALBUM);} // Read field is it exist
+                if(WAVtag.getFirst(FieldKey.GENRE).length() > 0){ genre = WAVtag.getFirst(FieldKey.GENRE);} // Read field is it exist
+                if(WAVtag.getFirst(FieldKey.TRACK).length() > 0){ titleNumber = Integer.parseInt(WAVtag.getFirst(FieldKey.TRACK));} // Read field is it exist
+                if(WAVtag.getFirst(FieldKey.YEAR).length() > 0){ year = Integer.parseInt(WAVtag.getFirst(FieldKey.YEAR));} // Read field is it exist
             }
             catch (Exception ex) {
                 logger.warning("Exception while reading WAV tag for file: '" + f.getPath()+ "'. Exception: "+ex.getMessage());

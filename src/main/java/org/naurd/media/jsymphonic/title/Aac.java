@@ -30,6 +30,7 @@ package org.naurd.media.jsymphonic.title;
 import java.io.File;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.mp4.Mp4AudioHeader;
+import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 
 /**
@@ -93,17 +94,17 @@ public class Aac extends Title {
         if(tryReadTagInfo){
             try {
                 Tag MP4tag = AudioFileIO.read(f).getTag();
-                if(MP4tag.getFirstTitle().length() > 0){ titleName = MP4tag.getFirstTitle();} // Read field is it exist
-                if(MP4tag.getFirstArtist().length() > 0){ artistName = MP4tag.getFirstArtist();} // Read field is it exist
-                if(MP4tag.getFirstAlbum().length() > 0){ albumName = MP4tag.getFirstAlbum();} // Read field is it exist
-                if(MP4tag.getFirstGenre().length() > 0){ genre = MP4tag.getFirstGenre();} // Read field is it exist
-                if(MP4tag.getFirstYear().length() > 0){ year = Integer.parseInt(MP4tag.getFirstYear());} // Read field is it exist
-                if(MP4tag.getFirstTrack().length() > 0){ // Read field is it exist
-                    if(MP4tag.getFirstTrack().contains("/")){
-                        titleNumber = Integer.parseInt((MP4tag.getFirstTrack().split("/",2))[0]);
+                if(MP4tag.getFirst(FieldKey.TITLE).length() > 0){ titleName = MP4tag.getFirst(FieldKey.TITLE);} // Read field is it exist
+                if(MP4tag.getFirst(FieldKey.ARTIST).length() > 0){ artistName = MP4tag.getFirst(FieldKey.ARTIST);} // Read field is it exist
+                if(MP4tag.getFirst(FieldKey.ALBUM).length() > 0){ albumName = MP4tag.getFirst(FieldKey.ALBUM);} // Read field is it exist
+                if(MP4tag.getFirst(FieldKey.GENRE).length() > 0){ genre = MP4tag.getFirst(FieldKey.GENRE);} // Read field is it exist
+                if(MP4tag.getFirst(FieldKey.YEAR).length() > 0){ year = Integer.parseInt(MP4tag.getFirst(FieldKey.YEAR));} // Read field is it exist
+                if(MP4tag.getFirst(FieldKey.TRACK).length() > 0){ // Read field is it exist
+                    if(MP4tag.getFirst(FieldKey.TRACK).contains("/")){
+                        titleNumber = Integer.parseInt((MP4tag.getFirst(FieldKey.TRACK).split("/",2))[0]);
                     }
                     else{
-                        titleNumber = Integer.parseInt(MP4tag.getFirstTrack());
+                        titleNumber = Integer.parseInt(MP4tag.getFirst(FieldKey.TRACK));
                     }
                 }
             }

@@ -29,6 +29,7 @@ package org.naurd.media.jsymphonic.title;
 
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
+import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 
 /**
@@ -62,12 +63,12 @@ public class Ogg extends Title{
         if(tryReadTagInfo){
             try {
                 Tag OGGtag = AudioFileIO.read(f).getTag();
-                if(OGGtag.getFirstTitle().length() > 0){ titleName = OGGtag.getFirstTitle();} // Read field is it exist
-                if(OGGtag.getFirstArtist().length() > 0){ artistName = OGGtag.getFirstArtist();} // Read field is it exist
-                if(OGGtag.getFirstAlbum().length() > 0){ albumName = OGGtag.getFirstAlbum();} // Read field is it exist
-                if(OGGtag.getFirstGenre().length() > 0){ genre = OGGtag.getFirstGenre();} // Read field is it exist
-                if(OGGtag.getFirstTrack().length() > 0){ titleNumber = Integer.parseInt(OGGtag.getFirstTrack());} // Read field is it exist
-                if(OGGtag.getFirstYear().length() > 0){ year = Integer.parseInt(OGGtag.getFirstYear());} // Read field is it exist
+                if(OGGtag.getFirst(FieldKey.TITLE).length() > 0){ titleName = OGGtag.getFirst(FieldKey.TITLE);} // Read field is it exist
+                if(OGGtag.getFirst(FieldKey.ARTIST).length() > 0){ artistName = OGGtag.getFirst(FieldKey.ARTIST);} // Read field is it exist
+                if(OGGtag.getFirst(FieldKey.ALBUM).length() > 0){ albumName = OGGtag.getFirst(FieldKey.ALBUM);} // Read field is it exist
+                if(OGGtag.getFirst(FieldKey.GENRE).length() > 0){ genre = OGGtag.getFirst(FieldKey.GENRE);} // Read field is it exist
+                if(OGGtag.getFirst(FieldKey.TRACK).length() > 0){ titleNumber = Integer.parseInt(OGGtag.getFirst(FieldKey.TRACK));} // Read field is it exist
+                if(OGGtag.getFirst(FieldKey.YEAR).length() > 0){ year = Integer.parseInt(OGGtag.getFirst(FieldKey.YEAR));} // Read field is it exist
             }
             catch (Exception ex) {
                 logger.warning("Exception while reading OGG tag for file: '" + f.getPath()+ "'. Exception: "+ex.getMessage());

@@ -29,6 +29,7 @@ package org.naurd.media.jsymphonic.title;
 
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
+import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.naurd.media.jsymphonic.toolBox.DataBaseOmgaudioToolBox;
 
@@ -64,12 +65,12 @@ public class Flac extends Title{
         if(tryReadTagInfo){
             try {
                 Tag FLACtag = AudioFileIO.read(f).getTag();
-                if(FLACtag.getFirstTitle().length() > 0){ titleName = FLACtag.getFirstTitle();} // Read field is it exist
-                if(FLACtag.getFirstArtist().length() > 0){ artistName = FLACtag.getFirstArtist();} // Read field is it exist
-                if(FLACtag.getFirstAlbum().length() > 0){ albumName = FLACtag.getFirstAlbum();} // Read field is it exist
-                if(FLACtag.getFirstGenre().length() > 0){ genre = FLACtag.getFirstGenre();} // Read field is it exist
-                if(FLACtag.getFirstTrack().length() > 0){ titleNumber = Integer.parseInt(FLACtag.getFirstTrack());} // Read field is it exist
-                if(FLACtag.getFirstYear().length() > 0){ year = Integer.parseInt(FLACtag.getFirstYear());} // Read field is it exist
+                if(FLACtag.getFirst(FieldKey.TITLE).length() > 0){ titleName = FLACtag.getFirst(FieldKey.TITLE);} // Read field is it exist
+                if(FLACtag.getFirst(FieldKey.ARTIST).length() > 0){ artistName = FLACtag.getFirst(FieldKey.ARTIST);} // Read field is it exist
+                if(FLACtag.getFirst(FieldKey.ALBUM).length() > 0){ albumName = FLACtag.getFirst(FieldKey.ALBUM);} // Read field is it exist
+                if(FLACtag.getFirst(FieldKey.GENRE).length() > 0){ genre = FLACtag.getFirst(FieldKey.GENRE);} // Read field is it exist
+                if(FLACtag.getFirst(FieldKey.TRACK).length() > 0){ titleNumber = Integer.parseInt(FLACtag.getFirst(FieldKey.TRACK));} // Read field is it exist
+                if(FLACtag.getFirst(FieldKey.YEAR).length() > 0){ year = Integer.parseInt(FLACtag.getFirst(FieldKey.YEAR));} // Read field is it exist
             }
             catch (Exception ex) {
                 logger.warning("Exception while reading FLAC tag for file: '" + f.getPath()+ "'. Exception: "+ex.getMessage());
