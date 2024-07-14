@@ -78,7 +78,8 @@ public class JSymphonicWindow extends javax.swing.JFrame {
     private JTabbedPane localTabbedPane;
 
     private static Logger logger = Logger.getLogger("org.danizmax.jsymphonic.gui");
-    private static String configFile = "JSymphonic.xml";
+    private String userHome = System.getProperty("user.home");
+    private String configFile = userHome + File.separator +  ".config" + File.separator + "jsymphonic" + File.separator + "JSymphonic.xml";
     private static FileHandler fileLogHandler;
     private static GuiLogHandler glHandler;
     //Log file settings

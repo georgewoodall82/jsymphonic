@@ -27,6 +27,8 @@ package org.danizmax.jsymphonic.gui;
 
 import org.danizmax.jsymphonic.toolkit.*;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -264,90 +266,95 @@ public class SettingsHandler extends DefaultHandler{
     }
     
         /** This method writes settings in XML format to a file. */
-    public void writeXMLFile() {
-        try {
-
-            getLogger().info("Writing config file" + getSettingsFile().getCanonicalPath() + "... ");
-            Document document;
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        public void writeXMLFile() {
             try {
-
-                DocumentBuilder builder = factory.newDocumentBuilder();
-                document = builder.newDocument(); // Create from whole cloth
-                //create root element
-                Element JSymphonicSetting = (Element) document.createElement("JSymphonicSetting");
-                document.appendChild(JSymphonicSetting);
-
-                //Window Settings
-                Element WindowSettings = (Element) document.createElement("WindowSettings");
-
-                Element positionEl = (Element) document.createElement("Position");
-                positionEl.setAttribute("PositionX", String.valueOf(getWindowPositionX()));
-                positionEl.setAttribute("PositionY", String.valueOf(getWindowPositionY()));
-                WindowSettings.appendChild(positionEl);
-
-                Element sizeEl = (Element) document.createElement("Size");
-                sizeEl.setAttribute("Width", String.valueOf(getWindowWidth()));
-                sizeEl.setAttribute("Height", String.valueOf(getWindowHeight()));
-                WindowSettings.appendChild(sizeEl);
-                JSymphonicSetting.appendChild(WindowSettings);
-                
-                Element guiEl = (Element) document.createElement("GuiSettings");
-                guiEl.setAttribute("Language", getLanguage());
-                guiEl.setAttribute("Theme",getTheme()) ;
-                JSymphonicSetting.appendChild(guiEl);
-                
-                Element levelEl = (Element) document.createElement("Logging");
-                levelEl.setAttribute("Level", getLogLevel());
-                levelEl.setAttribute("LogToFile",String.valueOf(isLogToFile())) ;
-                JSymphonicSetting.appendChild(levelEl);
-                
-                Element transferEl = (Element) document.createElement("Transfer");
-                transferEl.setAttribute("Bitrate", String.valueOf(getBitrate()));
-                transferEl.setAttribute("AlwaysTranscode", String.valueOf(isAlwaysTrascode())) ;
-                transferEl.setAttribute("ReadID3Tags", String.valueOf(isReadID3Tags())) ;
-                transferEl.setAttribute("readTagFolderStructure", String.valueOf(getReadTagFolderStructure())) ;
-                JSymphonicSetting.appendChild(transferEl);
-                
-                //profiles
-                Element profilesEl = (Element) document.createElement("Profiles");
-                profilesEl.setAttribute("Selected", getSelectedProfile());
-                Set keys = profiles.keySet(); // The set of keys in the map.
-                Iterator iter = keys.iterator();
-
-                while (iter.hasNext()) {
-                    Object key = iter.next();
-                    Object val = profiles.get(key); 
-                    Element profileEl = (Element) document.createElement("Profile");
-                    profileEl.setAttribute("Name", (String) ((ProfileElement)val).getProfileName());
-                    profileEl.setAttribute("DeviceGeneration", Integer.toString(((ProfileElement)val).getDeviceGeneration()));
-                    profileEl.setAttribute("DevicePath", (String) ((ProfileElement)val).getDevicePath());
-                    profileEl.setAttribute("LocalPath", (String) ((ProfileElement)val).getLocalPath());
-                    profileEl.setAttribute("ExportPath", (String) ((ProfileElement)val).getExportPath());
-                    profileEl.setAttribute("TranscodeTempPath", (String) ((ProfileElement)val).getTranscodeTempPath());
-                    profileEl.setAttribute("TTPathIsSameAsDPath", (String) String.valueOf(((ProfileElement)val).isTempPathSameAsDevicePath()));
-                    profileEl.setAttribute("ExPathIsSameAsLPath", (String) String.valueOf(((ProfileElement)val).isExportPathSameAsLocalPath()));
-                    profilesEl.appendChild(profileEl);
+                // Create all leading folders if they don't exist
+                Files.createDirectories(Paths.get(getSettingsFile().getParent()));
+        
+                getLogger().info("Writing config file " + getSettingsFile().getCanonicalPath() + "... ");
+                Document document;
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                try {
+                    DocumentBuilder builder = factory.newDocumentBuilder();
+                    document = builder.newDocument(); // Create from whole cloth
+                    
+                    // Rest of the XML creation code remains the same
+                    //create root element
+                    Element JSymphonicSetting = (Element) document.createElement("JSymphonicSetting");
+                    document.appendChild(JSymphonicSetting);
+        
+                    //Window Settings
+                    Element WindowSettings = (Element) document.createElement("WindowSettings");
+        
+                    Element positionEl = (Element) document.createElement("Position");
+                    positionEl.setAttribute("PositionX", String.valueOf(getWindowPositionX()));
+                    positionEl.setAttribute("PositionY", String.valueOf(getWindowPositionY()));
+                    WindowSettings.appendChild(positionEl);
+        
+                    Element sizeEl = (Element) document.createElement("Size");
+                    sizeEl.setAttribute("Width", String.valueOf(getWindowWidth()));
+                    sizeEl.setAttribute("Height", String.valueOf(getWindowHeight()));
+                    WindowSettings.appendChild(sizeEl);
+                    JSymphonicSetting.appendChild(WindowSettings);
+                    
+                    Element guiEl = (Element) document.createElement("GuiSettings");
+                    guiEl.setAttribute("Language", getLanguage());
+                    guiEl.setAttribute("Theme", getTheme());
+                    JSymphonicSetting.appendChild(guiEl);
+                    
+                    Element levelEl = (Element) document.createElement("Logging");
+                    levelEl.setAttribute("Level", getLogLevel());
+                    levelEl.setAttribute("LogToFile", String.valueOf(isLogToFile()));
+                    JSymphonicSetting.appendChild(levelEl);
+                    
+                    Element transferEl = (Element) document.createElement("Transfer");
+                    transferEl.setAttribute("Bitrate", String.valueOf(getBitrate()));
+                    transferEl.setAttribute("AlwaysTranscode", String.valueOf(isAlwaysTrascode()));
+                    transferEl.setAttribute("ReadID3Tags", String.valueOf(isReadID3Tags()));
+                    transferEl.setAttribute("readTagFolderStructure", String.valueOf(getReadTagFolderStructure()));
+                    JSymphonicSetting.appendChild(transferEl);
+                    
+                    //profiles
+                    Element profilesEl = (Element) document.createElement("Profiles");
+                    profilesEl.setAttribute("Selected", getSelectedProfile());
+                    Set keys = profiles.keySet(); // The set of keys in the map.
+                    Iterator iter = keys.iterator();
+        
+                    while (iter.hasNext()) {
+                        Object key = iter.next();
+                        Object val = profiles.get(key); 
+                        Element profileEl = (Element) document.createElement("Profile");
+                        profileEl.setAttribute("Name", (String) ((ProfileElement)val).getProfileName());
+                        profileEl.setAttribute("DeviceGeneration", Integer.toString(((ProfileElement)val).getDeviceGeneration()));
+                        profileEl.setAttribute("DevicePath", (String) ((ProfileElement)val).getDevicePath());
+                        profileEl.setAttribute("LocalPath", (String) ((ProfileElement)val).getLocalPath());
+                        profileEl.setAttribute("ExportPath", (String) ((ProfileElement)val).getExportPath());
+                        profileEl.setAttribute("TranscodeTempPath", (String) ((ProfileElement)val).getTranscodeTempPath());
+                        profileEl.setAttribute("TTPathIsSameAsDPath", String.valueOf(((ProfileElement)val).isTempPathSameAsDevicePath()));
+                        profileEl.setAttribute("ExPathIsSameAsLPath", String.valueOf(((ProfileElement)val).isExportPathSameAsLocalPath()));
+                        profilesEl.appendChild(profileEl);
+                    }
+        
+                    JSymphonicSetting.appendChild(profilesEl);
+                    
+                    Source src = new DOMSource(document);
+                    StreamResult result = new StreamResult(configFile);
+                    Transformer xformer = TransformerFactory.newInstance().newTransformer();
+                    xformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                    xformer.transform(src, result);
+                } catch (ParserConfigurationException pce) {
+                    // Parser with specified options can't be built
+                    pce.printStackTrace();
+                } catch (TransformerConfigurationException e) {
+                    getLogger().severe("TransformerConfigurationException: " + e.getMessage());
+                } catch (TransformerException e) {
+                    getLogger().severe("TransformerException: " + e.getMessage());
                 }
-
-                JSymphonicSetting.appendChild(profilesEl);
-                
-                Source src = new DOMSource(document);
-                StreamResult result = new StreamResult(configFile);
-                Transformer xformer = TransformerFactory.newInstance().newTransformer();
-                xformer.setOutputProperty(OutputKeys.INDENT, "yes");
-                xformer.transform(src, result);
-            } catch (ParserConfigurationException pce) {
-                // Parser with specified options can't be built
-                pce.printStackTrace();
-            } catch (TransformerConfigurationException e) {
-            } catch (TransformerException e) {
+                getLogger().info("Done writing file");
+            } catch (IOException ex) {
+                getLogger().log(Level.SEVERE, "Error writing XML file", ex);
             }
-            getLogger().info("Done writing file");
-        } catch (IOException ex) {
-            Logger.getLogger(SettingsHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
 
     /** This method reads settings from a XML file. */
     public void readXMLFile() {
