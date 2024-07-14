@@ -36,6 +36,8 @@ import org.danizmax.jsymphonic.toolkit.JSymphonicMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import org.naurd.media.jsymphonic.title.Title;
 
+import com.pipasoft.jsymphonic.ResourceLoader;
+
 /**
  *
  * @author skiron
@@ -52,31 +54,31 @@ public class JSymphonicTreeCellRenderer extends DefaultTreeCellRenderer {
 
 
         if( ((JSymphonicMutableTreeNode)value).getType() == JSymphonicMutableTreeNode.TYPE_USB ) { 
-           setIcon(new ImageIcon(getClass().getResource("/org/danizmax/jsymphonic/resources/device.png")));
+           setIcon(ResourceLoader.getIcon("device.png"));
         }
         else if( ((JSymphonicMutableTreeNode)value).getType() == JSymphonicMutableTreeNode.TYPE_ALBUM ) { 
-           setIcon(new ImageIcon(getClass().getResource("/org/danizmax/jsymphonic/resources/album.png")));
+           setIcon(ResourceLoader.getIcon("album.png"));
         }
         else if( ((JSymphonicMutableTreeNode)value).getType() == JSymphonicMutableTreeNode.TYPE_ARTIST ) {
-           setIcon(new ImageIcon(getClass().getResource("/org/danizmax/jsymphonic/resources/artist.png")));
+           setIcon(ResourceLoader.getIcon("artist.png"));
         }
         else if( ((JSymphonicMutableTreeNode)value).getType() == JSymphonicMutableTreeNode.TYPE_GENRE ) {
-           setIcon(new ImageIcon(getClass().getResource("/org/danizmax/jsymphonic/resources/genre.png")));
+           setIcon(ResourceLoader.getIcon("genre.png"));
         }
         else if( ((JSymphonicMutableTreeNode)value).getType() == JSymphonicMutableTreeNode.TYPE_PLAYLIST ) {
-           setIcon(new ImageIcon(getClass().getResource("/org/danizmax/jsymphonic/resources/playlist.png")));
+           setIcon(ResourceLoader.getIcon("playlist.png"));
         }
         else if( ((JSymphonicMutableTreeNode)value).getType() == JSymphonicMutableTreeNode.TYPE_TITLE ) {
-           setIcon(new ImageIcon(getClass().getResource("/org/danizmax/jsymphonic/resources/title.png")));
+           setIcon(ResourceLoader.getIcon("title.png"));
         }
         else if( ((JSymphonicMutableTreeNode)value).getType() == JSymphonicMutableTreeNode.TYPE_FOLDER ) {
-           setIcon(new ImageIcon(getClass().getResource("/org/danizmax/jsymphonic/resources/folder.png")));
+           setIcon(ResourceLoader.getIcon("folder.png"));
         }
         else if( ((JSymphonicMutableTreeNode)value).getType() == JSymphonicMutableTreeNode.TYPE_AUDIOFILE ) {
-           setIcon(new ImageIcon(getClass().getResource("/org/danizmax/jsymphonic/resources/audiofile.png")));
+           setIcon(ResourceLoader.getIcon("audiofile.png"));
         }
         else {
-           setIcon(new ImageIcon(getClass().getResource("/org/danizmax/jsymphonic/resources/defaut.png")));
+           setIcon(ResourceLoader.getIcon("default.png"));
         }
         
         //set the action color
