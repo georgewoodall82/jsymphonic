@@ -6,14 +6,11 @@ Note that I am not the orignal author. Jsymphonic was/is located at https://sour
 Download the latest jar from https://github.com/brianpipa/jsymphonic/releases/ and then you need to run it. Depending on your OS, and what you have configured, the way to do this may vary. See https://brianpipa.github.io/jsymphonic for full run instructions
 
 ## Building Jsymphonic (for developers only)
-Clone this repo then install the jars to your local maven repo with these commands:
+Clone this repo then build it with the following:
 ```
-mvn install:install-file -Dfile=./jars/jaudiotagger.jar -DgroupId=org -DartifactId=jaudiotagger -Dversion=1.0 -Dpackaging=jar
-mvn install:install-file -Dfile=./jars/swing-layout.jar -DgroupId=org.jdesktop.layout -DartifactId=swing-layout -Dversion=1.0 -Dpackaging=jar
+mvn package
 ```
-Once that's done, you can build it with `mvn package` that will create target/jsymphonic-0.4-jar-with-dependencies.jar which is your runnable jar
-
-The previous build used precompiled jars in a weird way so I packaged those up into the jars you see in the /jars directory. I tried using moremodern maven-capable versions but they didn't work and I couldn't find the versions that were used here so I just packaged them into jars to make the build "better". Someone could probably change the code to use the newer libraries but it really didn't seem worth it at this point. There's lots of opportunity for code improvement, but unless someone is adding new features, it just doesn't seem worth it right now.
+Once that's done, it that will create target/jsymphonic-0.4-jar-with-dependencies.jar which is your runnable jar
 
 Any new files I add will be in https://github.com/brianpipa/jsymphonic/tree/main/src/main/java/com/pipasoft/jsymphonic I did add ResourceLoader.java to centralize the loading of the icon images.
 
