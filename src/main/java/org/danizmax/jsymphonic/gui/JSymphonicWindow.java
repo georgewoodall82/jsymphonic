@@ -749,7 +749,11 @@ private void importButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
 }//GEN-LAST:event_importButtonActionPerformed
 
 private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
-    JSymphonicAbout ab = new JSymphonicAbout(java.util.ResourceBundle.getBundle("localization/jsymphonicwindow").getString("JSymphonicWindow.About_JSymphonic"), java.util.ResourceBundle.getBundle("localization/misc").getString("global.version"),java.util.ResourceBundle.getBundle("localization/jsymphonicwindow").getString("JSymphonicWindow.Thanks_for_using"), java.util.ResourceBundle.getBundle("localization/jsymphonicwindow").getString("JSymphonicWindow.The_JSymphonic_team"));
+    JSymphonicAbout ab = new JSymphonicAbout(
+    		java.util.ResourceBundle.getBundle("localization/jsymphonicwindow").getString("JSymphonicWindow.About_JSymphonic"), 
+    		java.util.ResourceBundle.getBundle("localization/misc").getString("global.version"),
+    		java.util.ResourceBundle.getBundle("localization/jsymphonicwindow").getString("JSymphonicWindow.Thanks_for_using"), 
+    		java.util.ResourceBundle.getBundle("localization/jsymphonicwindow").getString("JSymphonicWindow.The_JSymphonic_team"));
     ab.setLocationRelativeTo(this);
     ab.setVisible(true);
 }//GEN-LAST:event_aboutMenuItemActionPerformed

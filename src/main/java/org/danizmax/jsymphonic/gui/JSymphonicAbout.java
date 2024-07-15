@@ -299,31 +299,12 @@ public class JSymphonicAbout extends javax.swing.JFrame {
      * The license file is stored in "org/danizmax/jsymphonic/resources". It is named "COPYING-xx_XX" where xx_XX is the language code. If the license is not translated into the current language (the file doesn't exist), load the english version named "COPYING.txt".
      */
     private void loadLicenseTextArea() {
-        BufferedReader licenseReader = null;
-    
-        // Try to load the license file corresponding to the current language code
-        try {
-            licenseReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/org/danizmax/jsymphonic/resources/COPYING_"+Locale.getDefault().toString()+".txt")));
-        }
-        catch(Exception e){
-            try {
-                // If an exception was thrown, load the english version
-                licenseReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/org/danizmax/jsymphonic/resources/COPYING.txt")));
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                Logger.getLogger(JSymphonicAbout.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
-        // Load the text from the file to the text area
-        try {
-            String str;
-            while ((str = licenseReader.readLine()) != null) {
-                licenseTextArea.append(str + "\n"); // Add each read line to the text area
-            }
-            licenseReader.close();
-        } 
-        catch (Exception e) {}
+    	
+    	String license = ResourceLoader.getResourceFileAsString("COPYING_"+Locale.getDefault().toString()+".txt");
+    	if (license == null || license.isBlank()) {
+    		license = ResourceLoader.getResourceFileAsString("COPYING.txt");
+    	}
+        licenseTextArea.append(license); // Add each read line to the text area
     }
 
 }
