@@ -60,6 +60,8 @@ import org.w3c.dom.Element;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import net.samuelcampos.usbdrivedetector.USBDeviceDetectorManager;
+import net.samuelcampos.usbdrivedetector.USBStorageDevice;
 
 /**
  * It handles operations such as setting, getting, saving and loading of settings values.
@@ -159,33 +161,19 @@ public class SettingsHandler extends DefaultHandler{
         // Search for the device path
         // Search through a list of paths
         List devicePathsList = new ArrayList();
-        // Relative Paths:
-        devicePathsList.add(".");
-        devicePathsList.add("..");
-        devicePathsList.add("../..");
-        // Linux and Mac possible Paths:
-        if(System.getProperty("os.name").toLowerCase().contains("linux") || System.getProperty("os.name").toLowerCase().contains("mac")){
-            devicePathsList.add("/media/Walkman");
-            devicePathsList.add("/media/walkman");
-            devicePathsList.add("/media/WALKMAN");
-            devicePathsList.add("/media/disk");
-            devicePathsList.add("/mnt/Walkman");
-            devicePathsList.add("/mnt/walkman");
-            devicePathsList.add("/mnt/WALKMAN");
-            devicePathsList.add("/mnt/disk");
+        
+        // Add Detected Paths:
+        USBDeviceDetectorManager driveDetector = new USBDeviceDetectorManager();
+        List<USBStorageDevice> drives = driveDetector.getRemovableDevices();
+        for (USBStorageDevice drive : drives) {
+            devicePathsList.add(drive.getRootDirectory().getAbsolutePath());
         }
-        // Windows possible Paths:
-        if(System.getProperty("os.name").toLowerCase().contains("windows")){
-            devicePathsList.add("D:");
-            devicePathsList.add("E:");
-            devicePathsList.add("F:");
-            devicePathsList.add("G:");
-            devicePathsList.add("H:");
-            devicePathsList.add("I:");
-            devicePathsList.add("J:");
-            devicePathsList.add("K:");
-            devicePathsList.add("L:");
+        try {
+            driveDetector.close();
+        } catch (Exception e) {
+            getLogger().warning(e.getMessage());
         }
+        
         // Search through all these paths using an iterator
         Iterator itDevicePath = devicePathsList.iterator();
 

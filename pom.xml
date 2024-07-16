@@ -52,5 +52,10 @@
 			<artifactId>jaudiotagger</artifactId>
 			<version>2.0.3</version>
 		</dependency>
+		<dependency>
+      		<groupId>net.samuelcampos</groupId>
+      		<artifactId>usbdrivedetector</artifactId>
+      		<version>2.2.1</version>
+    	</dependency>
 	</dependencies>
 </project>
