@@ -3,12 +3,9 @@ package com.pipasoft.jsymphonic;
 import java.io.*;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Files;
 import java.util.stream.Collectors;
 
 import javax.swing.ImageIcon;
-
-import org.apache.commons.io.FileUtils;
 
 /**
  * a more centralized place to load resources
