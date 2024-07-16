@@ -25,6 +25,8 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.5.3" date="2024-07-16">
+    </release>
     <release version="0.5.2" date="2024-07-15">
     </release>
     <release version="0.5.1" date="2024-07-15">
