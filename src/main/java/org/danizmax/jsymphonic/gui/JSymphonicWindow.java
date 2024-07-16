@@ -434,7 +434,7 @@ public class JSymphonicWindow extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("localization/misc"); // NOI18N
         setTitle(bundle.getString("global.version")); // NOI18N
-        setIconImage(ResourceLoader.getIcon("js_logo16.png").getImage());
+        setIconImage(ResourceLoader.getIcon("js_logo55.png").getImage());
         setMinimumSize(new java.awt.Dimension(640, 480));
         setName("Form"); // NOI18N
 
