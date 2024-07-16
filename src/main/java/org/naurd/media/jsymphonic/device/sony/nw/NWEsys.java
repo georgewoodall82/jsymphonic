@@ -30,7 +30,6 @@ package org.naurd.media.jsymphonic.device.sony.nw;
 import java.util.Vector;
 import java.util.logging.Logger;
 import org.naurd.media.jsymphonic.title.Title;
-import org.naurd.media.jsymphonic.toolBox.Java6ToolBox;
 
 /**
  * This class describe a Network Walkman with a database file based on a "ESYS" folder (generation 2).
@@ -68,9 +67,8 @@ public class NWEsys extends NWGeneric{
 		this.gotkey = true; // Gen2 devices always have a key !!
 
         // Update space
-        Java6ToolBox.FileSpaceInfo spaceInfo = Java6ToolBox.getFileSpaceInfo(source);
-        usableSpace = spaceInfo.getUsableSpace();
-        totalSpace = spaceInfo.getTotalSpace();
+        usableSpace = source.getUsableSpace();
+        totalSpace = source.getTotalSpace();
 
         // Set up the database
         dataBase = new DataBaseEsys(source);

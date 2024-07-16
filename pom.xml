@@ -42,13 +42,11 @@
 		</plugins>
 	</build>
 	<dependencies>
-<!-- https://mvnrepository.com/artifact/org.jdesktop.layout/swing-layout -->
 		<dependency>
 		    <groupId>org.swinglabs</groupId>
 		    <artifactId>swing-layout</artifactId>
-		    <version>1.0.3</version>	    
+		    <version>1.0.3</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/net.jthink/jaudiotagger -->
 		<dependency>
 			<groupId>org</groupId>
 			<artifactId>jaudiotagger</artifactId>

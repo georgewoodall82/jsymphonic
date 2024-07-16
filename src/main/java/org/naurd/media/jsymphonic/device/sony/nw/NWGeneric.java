@@ -35,7 +35,6 @@ import org.naurd.media.jsymphonic.title.Title;
 import org.naurd.media.jsymphonic.title.UnknowFileTypeException;
 import org.naurd.media.jsymphonic.toolBox.FFMpegToolBox;
 import org.naurd.media.jsymphonic.toolBox.JSymphonicIoFileFilter;
-import org.naurd.media.jsymphonic.toolBox.Java6ToolBox;
 import org.naurd.media.jsymphonic.toolBox.JSymphonicMap;
 
 /**
@@ -669,9 +668,8 @@ public abstract class NWGeneric implements org.naurd.media.jsymphonic.device.Dev
         dataBase.clear();
 
         // Update space
-        Java6ToolBox.FileSpaceInfo spaceInfo = Java6ToolBox.getFileSpaceInfo(source.getParentFile());
-        usableSpace = spaceInfo.getUsableSpace();
-        totalSpace = spaceInfo.getTotalSpace();
+        usableSpace = source.getParentFile().getUsableSpace();
+        totalSpace = source.getParentFile().getTotalSpace();
         titlesToImportSize = 0;
         titlesToDeleteSize = 0;
 
@@ -1402,8 +1400,7 @@ public abstract class NWGeneric implements org.naurd.media.jsymphonic.device.Dev
      *@return the capacity.
      */
     public long getTotalSpace(){
-        Java6ToolBox.FileSpaceInfo spaceInfo = Java6ToolBox.getFileSpaceInfo(source.getParentFile());
-        return spaceInfo.getTotalSpace();
+        return source.getParentFile().getTotalSpace();
     }
     
     /**
@@ -1412,8 +1409,7 @@ public abstract class NWGeneric implements org.naurd.media.jsymphonic.device.Dev
      *@return the available space.
      */
     public long getUsableSpace(){
-        Java6ToolBox.FileSpaceInfo spaceInfo = Java6ToolBox.getFileSpaceInfo(source.getParentFile());
-        return spaceInfo.getUsableSpace();
+        return source.getParentFile().getUsableSpace();
     }
     
     /**

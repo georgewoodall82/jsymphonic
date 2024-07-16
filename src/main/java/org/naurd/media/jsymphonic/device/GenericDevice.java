@@ -29,7 +29,6 @@ package org.naurd.media.jsymphonic.device;
 import java.io.File;
 import org.naurd.media.jsymphonic.title.Title;
 import org.naurd.media.jsymphonic.title.UnknowFileTypeException;
-import org.naurd.media.jsymphonic.toolBox.Java6ToolBox;
 
 /**
  *
@@ -203,12 +202,10 @@ public class GenericDevice implements org.naurd.media.jsymphonic.device.Device {
     }
     
     public long getTotalSpace(){
-        Java6ToolBox.FileSpaceInfo spaceInfo = Java6ToolBox.getFileSpaceInfo(source);
-        return spaceInfo.getTotalSpace();
+        return source.getTotalSpace();
     }
     public long getUsableSpace(){
-        Java6ToolBox.FileSpaceInfo spaceInfo = Java6ToolBox.getFileSpaceInfo(source);
-        return spaceInfo.getUsableSpace();
+        return source.getUsableSpace();
     }
     @Override
     public String toString(){

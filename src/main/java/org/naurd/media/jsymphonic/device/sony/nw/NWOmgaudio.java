@@ -40,7 +40,6 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import org.naurd.media.jsymphonic.title.Oma;
 import org.naurd.media.jsymphonic.title.Title;
-import org.naurd.media.jsymphonic.toolBox.Java6ToolBox;
 
 /**
  * This class describe a Network Walkman with a database file based on a "OMGAUDIO" folder (generations 3 to 7).
@@ -80,9 +79,8 @@ public class NWOmgaudio extends NWGeneric{
         }
         else{
             // Update space
-            Java6ToolBox.FileSpaceInfo spaceInfo = Java6ToolBox.getFileSpaceInfo(source);
-            usableSpace = spaceInfo.getUsableSpace();
-            totalSpace = spaceInfo.getTotalSpace();
+            usableSpace = source.getUsableSpace();
+            totalSpace = source.getTotalSpace();
 
             // Set the generation
             this.generation = generation;
