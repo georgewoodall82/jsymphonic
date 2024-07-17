@@ -1,83 +1,641 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
-<head> 
+
+<head>
 	<title>JSymphonic: Documentation</title>
-<!-- *CSS* -->
+	<!-- *CSS* -->
 	<style type="text/css">
-		body { margin: 0; padding: 0; background: #FFFFFF url(images/img01.jpg) repeat-x; font: 15px Arial, Helvetica, sans-serif; color: black; min-width: 800px; }
+		body {
+			margin: 0;
+			padding: 0;
+			background: #FFFFFF url(images/img01.jpg) repeat-x;
+			font: 15px Arial, Helvetica, sans-serif;
+			color: black;
+			min-width: 800px;
+		}
 
-		#header{background: #f9c770; padding: 20px; border: solid #e64415 ; border-width: 0 2px 2px 2px; width: 90%; margin: 0 auto; height: 200px;}
-		#header h1, #header h1 a {color: #e64415;}
-		#header h1 a:hover {text-decoration: underline; padding-top: 50px;}
-		#header a, #header a img {color: #e64415; text-decoration: none; border: none;}
-		#header a:hover, #header a:hover img {color: #e64415; text-decoration: underline; border: none;}
-		#header img {float: left;}
+		#header {
+			background: #f9c770;
+			padding: 20px;
+			border: solid #e64415;
+			border-width: 0 2px 2px 2px;
+			width: 90%;
+			margin: 0 auto;
+			height: 200px;
+		}
 
-		h1, h1 a, h2, h2 a, h3, h3 a { margin: 0; text-decoration: none; font-weight: normal; color: black; clear: both; }
-		h1 { letter-spacing: -1px; font-size: 2.2em; }
-		h2 { letter-spacing: -1px; font-size: 2em; }
-		h3 { font-size: 1em; }
+		#header h1,
+		#header h1 a {
+			color: #e64415;
+		}
 
-		p, ol, ul { margin-bottom: 2em; line-height: 200%; }
+		#header h1 a:hover {
+			text-decoration: underline;
+			padding-top: 50px;
+		}
 
-		blockquote { margin: 0 0 0 1.5em; padding-left: 1em; border-left: 5px solid #DDDDDD; }
+		#header a,
+		#header a img {
+			color: #e64415;
+			text-decoration: none;
+			border: none;
+		}
 
-		a { color: #eb660c; }
-		a:hover { text-decoration: none; }
+		#header a:hover,
+		#header a:hover img {
+			color: #e64415;
+			text-decoration: underline;
+			border: none;
+		}
 
-		#content { padding: 40px 40px 40px 40px; }
-		#content img { border: 0px none; margin: 5px; float: left; vertical-align: center; }
-		#content h3{ letter-spacing: -1px; font-weight: bold; font-size: 1.5em; padding: 10px 0 10px 30px; margin: 0; }
-		#content h4{ letter-spacing: -1px; font-weight: bold; font-size: 1.3em; color: #e64414; padding: 10px 0 10px 60px; margin: 0; }
-		#content h5{ letter-spacing: -1px; font-weight: bold; font-size: 1.15em; color: #eb660c; padding: 10px 0 10px 90px; margin: 0; }
+		#header img {
+			float: left;
+		}
 
-		.indent { margin : 10px; padding : 0 5px 0 40px; border-left : 5px solid #F1F1F1; border-top: 1px solid #F1F1F1; border-bottom: 1px solid #F1F1F1; border-right: 1px solid #F1F1F1; color: #626262; }
+		h1,
+		h1 a,
+		h2,
+		h2 a,
+		h3,
+		h3 a {
+			margin: 0;
+			text-decoration: none;
+			font-weight: normal;
+			color: black;
+			clear: both;
+		}
 
-		.toc, .toc a, .toc a:link, .toc a:visited, .toc a:active, .toc a:hover, .toc h3, .toc h4, .toc a h3, .toc a h4 { margin: 0; padding: 0; line-height: normal; text-decoration: none; }
-		.toc { border-bottom: 1px dashed #e64414; padding-bottom: 30px; margin-bottom: 50px; }
-		.toc h3 a, .toc h3 a:link, .toc h3 a:visited, .toc h3 a:active, .toc h3 a:hover{ padding-left: 10px; line-height: 20px; letter-spacing: normal; font-weight: normal; font-size: 0.9em; }
-		.toc h3 a:hover{ text-decoration: underline; }
-		.toc h4 a, .toc h4 a:link, .toc h4 a:visited, .toc h4 a:active, .toc h4 a:hover{ padding-left: 30px; line-height: 15px; letter-spacing: normal; font-weight: normal; font-size: 0.9em; color: #e64414; }
-		.toc h4 a:hover{ text-decoration: underline; }
+		h1 {
+			letter-spacing: -1px;
+			font-size: 2.2em;
+		}
 
-		.up, .up a{ color: #e64414; font-size: 14px; }
-		.up:hover{ text-decoration: underline; }
+		h2 {
+			letter-spacing: -1px;
+			font-size: 2em;
+		}
+
+		h3 {
+			font-size: 1em;
+		}
+
+		p,
+		ol,
+		ul {
+			margin-bottom: 2em;
+			line-height: 200%;
+		}
+
+		blockquote {
+			margin: 0 0 0 1.5em;
+			padding-left: 1em;
+			border-left: 5px solid #DDDDDD;
+		}
+
+		a {
+			color: #eb660c;
+		}
+
+		a:hover {
+			text-decoration: none;
+		}
+
+		#content {
+			padding: 40px 40px 40px 40px;
+		}
+
+		#content img {
+			border: 0px none;
+			margin: 5px;
+			float: left;
+			vertical-align: center;
+		}
+
+		#content h3 {
+			letter-spacing: -1px;
+			font-weight: bold;
+			font-size: 1.5em;
+			padding: 10px 0 10px 30px;
+			margin: 0;
+		}
+
+		#content h4 {
+			letter-spacing: -1px;
+			font-weight: bold;
+			font-size: 1.3em;
+			color: #e64414;
+			padding: 10px 0 10px 60px;
+			margin: 0;
+		}
+
+		#content h5 {
+			letter-spacing: -1px;
+			font-weight: bold;
+			font-size: 1.15em;
+			color: #eb660c;
+			padding: 10px 0 10px 90px;
+			margin: 0;
+		}
+
+		.indent {
+			margin: 10px;
+			padding: 0 5px 0 40px;
+			border-left: 5px solid #F1F1F1;
+			border-top: 1px solid #F1F1F1;
+			border-bottom: 1px solid #F1F1F1;
+			border-right: 1px solid #F1F1F1;
+			color: #626262;
+		}
+
+		.toc,
+		.toc a,
+		.toc a:link,
+		.toc a:visited,
+		.toc a:active,
+		.toc a:hover,
+		.toc h3,
+		.toc h4,
+		.toc a h3,
+		.toc a h4 {
+			margin: 0;
+			padding: 0;
+			line-height: normal;
+			text-decoration: none;
+		}
+
+		.toc {
+			border-bottom: 1px dashed #e64414;
+			padding-bottom: 30px;
+			margin-bottom: 50px;
+		}
+
+		.toc h3 a,
+		.toc h3 a:link,
+		.toc h3 a:visited,
+		.toc h3 a:active,
+		.toc h3 a:hover {
+			padding-left: 10px;
+			line-height: 20px;
+			letter-spacing: normal;
+			font-weight: normal;
+			font-size: 0.9em;
+		}
+
+		.toc h3 a:hover {
+			text-decoration: underline;
+		}
+
+		.toc h4 a,
+		.toc h4 a:link,
+		.toc h4 a:visited,
+		.toc h4 a:active,
+		.toc h4 a:hover {
+			padding-left: 30px;
+			line-height: 15px;
+			letter-spacing: normal;
+			font-weight: normal;
+			font-size: 0.9em;
+			color: #e64414;
+		}
+
+		.toc h4 a:hover {
+			text-decoration: underline;
+		}
+
+		.up,
+		.up a {
+			color: #e64414;
+			font-size: 14px;
+		}
+
+		.up:hover {
+			text-decoration: underline;
+		}
 	</style>
-<!-- *META* -->
+	<!-- *META* -->
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 	<meta http-equiv="content-style-type" content="text/css">
 	<meta http-equiv="content-language" content="en">
-<!-- Core Meta Tags -->
-	<meta name="description" content="JSymphonic is an alternative to SonicStage to transfer music to Walkmans. JSymphonic runs under Windows, Linux and MacOS.">
+	<!-- Core Meta Tags -->
+	<meta name="description"
+		content="JSymphonic is an alternative to SonicStage to transfer music to Walkmans. JSymphonic runs under Windows, Linux and MacOS.">
 	<meta name="keywords" content="SonicStage, JSymphonic, sony, transfer, Walkman">
 	<link rel="icon" href="http://symphonic.sourceforge.net/favicon.ico" type="image/x-icon">
 	<link rel="shortcut icon" href="http://symphonic.sourceforge.net/favicon.ico" type="image/xicon">
 </head>
-<body>
- <!-- start header -->
-<div id="header">
-<h1><a href="http://symphonic.sourceforge.net" title="JSymphonic"><img src="http://symphonic.sourceforge.net/e107_themes/images/JSymphonic-Logo.png" alt="JSymphonic logo" />JSymphonic</a> - README</h1>
-<p><i>Please note that this README file contains images which can only be displayed if you have an Internet connection. The links given also refer to Internet pages. You can download an off-line manual <a href="http://symphonic.svn.sourceforge.net/viewvc/symphonic/documentation/metricjester/Offline Documentation v0.3.0.zip" alt="Offline documentation" >here</a>.</i></p>
-</div>
-<!-- end header -->
 
-<!-- start content -->	
-<div id="content">      
-<div class="toc"><h2 id="toc" >Contents</h2><h3><a class='bbcode' href='#1' >1) What's new!?</a></h3><h3><a class='bbcode' href='#2' >2) Warning!</a></h3><h3><a class='bbcode' href='#3' >3) Installing JSymphonic</a></h3> <h4><a class='bbcode' href='#3.1' >3.1) Overview</a></h4> <h4><a class='bbcode' href='#3.2' >3.2) Step-by-step installation</a></h4><h3><a class='bbcode' href='#4' >4) Using JSymphonic</a></h3> <h4><a class='bbcode' href='#4.1' >4.1) Running JSymphonic</a></h4> <h4><a class='bbcode' href='#4.2' >4.2) First run</a></h4> <h4><a class='bbcode' href='#4.3' >4.3) Configuring JSymphonic</a></h4> <h4><a class='bbcode' href='#4.4' >4.4) JSymphonic's features tour</a></h4><h3><a class='bbcode' href='#5' >5) Troubleshooting</a></h3><h3><a class='bbcode' href='#6' >6) Credits and Licence Information</a></h3> <h4><a class='bbcode' href='#6.1' >6.1) JSymphonic team</a></h4> <h4><a class='bbcode' href='#6.2' >6.2) Symphonic plugin, openSonyDb</a></h4> <h4><a class='bbcode' href='#6.3' >6.3) Translators</a></h4> <h4><a class='bbcode' href='#6.4' >6.4) Misc</a></h4> <h4><a class='bbcode' href='#6.5' >6.5) Thanks</a></h4> <h4><a class='bbcode' href='#6.6' >6.6) License</a></h4></div><h3 id="1">1)  What's new!? <span class="up">(<a class='bbcode' href='#toc' >UP</a>)</span></h3><ul class='bbcode'><li class='bbcode'>Improve error reporting<br /></li><li class='bbcode'> Improve transfer interruption<br /></li><li class='bbcode'> Improve local folder guessing at first startup<br /></li><li class='bbcode'> Add German and Russian translations<br /></li><li class='bbcode'> Add a "Browse disk" button in the first time configuration windows<br /></li><li class='bbcode'> Fix a display bug (concerning MPC files)<br /></li><li class='bbcode'> Remove file extension from title when default pattern fails<br /></li><li class='bbcode'> Other minor bug fixes<br /></li><li class='bbcode'> Update the version of FFMPEG for Windows users<br /></li></ul><br />You can consult the complete <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?13' rel='external' >change log here</a>.<br /><br /><h3 id="2">2)  Warning! <span class="up">(<a class='bbcode' href='#toc' >UP</a>)</span></h3>You are using this software at your own risk, and the Symphonic Team is not responsible for any damage that may or may not come from the use of JSymphonic.<br /><br /><h3 id="3">3) Installing JSymphonic <span class="up">(<a class='bbcode' href='#toc' >UP</a>)</span></h3><h4 id="3.1">3.1) Overview</h4>JSymphonic doesn't need any installation process, it is a stand alone application in a single file which can be copied anywhere and run under the condition that <a class='bbcode' href='http://www.java.com' rel='external' >JAVA</a> is installed.<br />If you are familiar with Java and ".jar" applications, you may skip to the <a class='bbcode' href='#3.2-Step3' >Step 3 - Installing JSymphonic</a> section.<br /><br /><h4 id="3.2">3.2) Step-by-step installation</h4><h5> Step 1 - Dowloading JSymphonic</h5>If it's not already done, the first thing to do is to dowload JSymphonic from <a class='bbcode' href='http://symphonic.sourceforge.net/download.php?list.3' rel='external' >the dowload section</a>.<br />If you are not sure about what version to pick, choose one stable. Stable versions are the ones named (<a class='bbcode' href='http://symphonic.sourceforge.net/page.php?2#16' rel='external' >know more about JSymphonic versions code name</a>). Unstable versions contain "a" or "b" letters, which means "alpha" (unstable) and "beta" (testing).<br /><br /><h5> Step 2 - Installing Java</h5>Second step consists in installing Java. But you only need to install it if it's not already installed, which is the case in many computers. To know if java is installed, do the following:<br /><ul class='bbcode'><li class='bbcode'><strong class='bbcode bold'>Windows users (first method): </strong> <br />a) Open the "Control Panel" from the Windows Start menu.<br /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig1.png" alt="Windows XP Start menu" /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig2.png" alt="Windows Vista Start menu" /><div style="clear: both;" ></div>b) Enter the "Add or Remove Programs" menu (Windows XP) or "Programs and Features" menu (Windows Vista).<br /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig3.png" alt="Windows XP Control Panel" /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig4.png" alt="Windows Vista Control Panel" /><div style="clear: both;" ></div>c) Search for a "Java(TM)" entry in the list. If it is present, Java is installed, you can skip to <a class='bbcode' href='#3.2-Step3' >step 3</a>, else you should install it. (Note that JSymphonic requires at least version 1.5 (also called 5) to work. The last version (1.6, also called 6) is advised.)<br /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig5.png" alt="Windows XP Add or Remove Programs" /><div style="clear: both;" ></div><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig6.png" alt="Windows Vista Programs and Features" /><div style="clear: both;" ></div>To install Java, download it from the <a class='bbcode' href='http://www.java.com' rel='external' >official website</a> and install it on your computer.<br />The installation of Java is quite basic and it won't be explained here. If you have any trouble, ask for help in <a class='bbcode' href='http://apps.sourceforge.net/phpbb/symphonic/index.php' rel='external' >the forum</a>.<br /><br /></li><li class='bbcode'><strong class='bbcode bold'>Windows users (second method): </strong> Open a terminal (Start Menu>All Programs>Accessories>Command Prompt) and type <br /><div class='code_highlight code-box' style='unicode-bidi: embed; direction: ltr'><code><span style="color: #000000">java&nbsp;-version</span></code></div><br />If the command doesn't return an error, Java is installed, and it returns the version, which must be at least 1.5 to run JSymphonic.<br /><br /></li><li class='bbcode'><strong class='bbcode bold'>Linux users: </strong><br />Open a terminal and type<br /><div class='code_highlight code-box' style='unicode-bidi: embed; direction: ltr'><code><span style="color: #000000">java&nbsp;-version</span></code></div><br />If the command doesn't return an error, Java is installed, and it returns the version, which must be at least 1.5 to run JSymphonic.<br /><br /></li><li class='bbcode'><strong class='bbcode bold'>MacOS users: </strong> Java is always installed with MacOS. However, you may not have the lastest version. See <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?2#11' rel='external' >this article in the FAQ</a> to update your Java installation. Note: this is not compulsory.<br /></li></ul><br /><br /><h5 id="3.2-Step3"> Step 3 - Installing JSymphonic</h5>You have downloaded a ".zip" file which you should unzip. It contains two files: the application "JSymphonic_vXXX.jar" (a JAVA ".jar" program) and a README file.<br />There is no installation process, you can copy the ".jar" where you want to store it. It is meant to be stored on the player itself to have the program available whatever the computer you plug your player to.<br />As it is shown on the picture below, you can create a "JSymphonic" folder on the root of your player to store the application.<br /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig7.png" alt="Installing JSymphonic" />On this picture, you can notice that a second file named "JSymphonic.xml" is present. This file is generated when you use JSymphonic. It holds your configuration. If you try to delete it, a new one will be created at next start up.<br />If you upgrade from version 0.2.x or 0.3.0a or 0.3.0a2, it is advised to delete your old configuration file to create a clean new one.<br /><div style="clear: both;"></div><br /><br /><br /><h5 id="3.2-Step4"> Step 4 - Installing FFMPEG</h5>Walkmans can only play natively ATRAC and MP3 formats (and WMA format for <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?6' rel='external' >generations</a> 4 to 7 and AAC format for <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?6' rel='external' >generations</a> 6 and 7).<br />To transfer other formats, JSymphonic uses FFMPEG to transcode the other formats to MP3.<br />If you only want to transfer MP3 files, you can skip this step.<br />The installation of FFMPEG depends on your operating system.<br /><ul class='bbcode'><li class='bbcode'> <strong class='bbcode bold'>Windows users: </strong> you need to download FFMPEG from <a class='bbcode' href='http://symphonic.sourceforge.net/download.php?list.4' rel='external' >the download section</a>. You should download the "r21657" version (the other one is for people using version of JSymphonic previous to v0.3.0 stable). Once again, your are downloading a ".zip" file which only needs to be unzipped and placed along with the JSymphonic program. You have to create a folder named "ffmpeg-win32" in the folder containing "JSymphonic_vXXX.jar" and place the files "ffmpeg.exe" in the "ffmpeg-win32" folder. This is pictured on the images below:<br /><img id="JS-Windows-fig8.png" src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig8.png" alt="Installing JSymphonic" /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig9.png" alt="Installing JSymphonic" /><div style="clear: both;"></div><br /></li><li class='bbcode'> <strong class='bbcode bold'>Linux users: </strong> You need to have installed FFMPEG with MP3 support. You may compile FFMPEG from the sources (google to find the sources) but your distribution may offer you a<br />package. Please refer to your distribution's documentation.<br /><br />For Ubuntu users (<= 8.04), Hardy release and older can have a package for FFMPEG in the Medibuntu repository.<br /><br />For Ubuntu users (>= 8.10), Intrepid release and newer offer a package of FFMPEG but it is compiled WITHOUT MP3 support. You have to install this version first <br />and, to enable MP3 support, you need to enable Multiverse repositories and install the following packages:<br /><div class='code_highlight code-box' style='unicode-bidi: embed; direction: ltr'><code><span style="color: #000000">libavcodec-unstripped-51
+<body>
+	<!-- start header -->
+	<div id="header">
+		<h1><a href="http://symphonic.sourceforge.net" title="JSymphonic"><img
+					src="http://symphonic.sourceforge.net/e107_themes/images/JSymphonic-Logo.png"
+					alt="JSymphonic logo" />JSymphonic</a> - README</h1>
+		<p><i>Please note that this README file contains images which can only be displayed if you have an Internet
+				connection. The links given also refer to Internet pages. You can download an off-line manual <a
+					href="http://symphonic.svn.sourceforge.net/viewvc/symphonic/documentation/metricjester/Offline Documentation v0.3.0.zip"
+					alt="Offline documentation">here</a>.</i></p>
+	</div>
+	<!-- end header -->
+
+	<!-- start content -->
+	<div id="content">
+		<div class="toc">
+			<h2 id="toc">Contents</h2>
+			<h3><a class='bbcode' href='#1'>1) What's new!?</a></h3>
+			<h3><a class='bbcode' href='#2'>2) Warning!</a></h3>
+			<h3><a class='bbcode' href='#3'>3) Installing JSymphonic</a></h3>
+			<h4><a class='bbcode' href='#3.1'>3.1) Overview</a></h4>
+			<h4><a class='bbcode' href='#3.2'>3.2) Step-by-step installation</a></h4>
+			<h3><a class='bbcode' href='#4'>4) Using JSymphonic</a></h3>
+			<h4><a class='bbcode' href='#4.1'>4.1) Running JSymphonic</a></h4>
+			<h4><a class='bbcode' href='#4.2'>4.2) First run</a></h4>
+			<h4><a class='bbcode' href='#4.3'>4.3) Configuring JSymphonic</a></h4>
+			<h4><a class='bbcode' href='#4.4'>4.4) JSymphonic's features tour</a></h4>
+			<h3><a class='bbcode' href='#5'>5) Troubleshooting</a></h3>
+			<h3><a class='bbcode' href='#6'>6) Credits and Licence Information</a></h3>
+			<h4><a class='bbcode' href='#6.1'>6.1) JSymphonic team</a></h4>
+			<h4><a class='bbcode' href='#6.2'>6.2) Symphonic plugin, openSonyDb</a></h4>
+			<h4><a class='bbcode' href='#6.3'>6.3) Translators</a></h4>
+			<h4><a class='bbcode' href='#6.4'>6.4) Misc</a></h4>
+			<h4><a class='bbcode' href='#6.5'>6.5) Thanks</a></h4>
+			<h4><a class='bbcode' href='#6.6'>6.6) License</a></h4>
+		</div>
+		<h3 id="1">1) What's new!? <span class="up">(<a class='bbcode' href='#toc'>UP</a>)</span></h3>
+		<ul class='bbcode'>
+			<li class='bbcode'>Improve error reporting<br /></li>
+			<li class='bbcode'> Improve transfer interruption<br /></li>
+			<li class='bbcode'> Improve local folder guessing at first startup<br /></li>
+			<li class='bbcode'> Add German and Russian translations<br /></li>
+			<li class='bbcode'> Add a "Browse disk" button in the first time configuration windows<br /></li>
+			<li class='bbcode'> Fix a display bug (concerning MPC files)<br /></li>
+			<li class='bbcode'> Remove file extension from title when default pattern fails<br /></li>
+			<li class='bbcode'> Other minor bug fixes<br /></li>
+			<li class='bbcode'> Update the version of FFMPEG for Windows users<br /></li>
+		</ul><br />You can consult the complete <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?13'
+			rel='external'>change log here</a>.<br /><br />
+		<h3 id="2">2) Warning! <span class="up">(<a class='bbcode' href='#toc'>UP</a>)</span></h3>You are using this
+		software at your own risk, and the Symphonic Team is not responsible for any damage that may or may not come
+		from the use of JSymphonic.<br /><br />
+		<h3 id="3">3) Installing JSymphonic <span class="up">(<a class='bbcode' href='#toc'>UP</a>)</span></h3>
+		<h4 id="3.1">3.1) Overview</h4>JSymphonic doesn't need any installation process, it is a stand alone application
+		in a single file which can be copied anywhere and run under the condition that <a class='bbcode'
+			href='http://www.java.com' rel='external'>JAVA</a> is installed.<br />If you are familiar with Java and
+		".jar" applications, you may skip to the <a class='bbcode' href='#3.2-Step3'>Step 3 - Installing JSymphonic</a>
+		section.<br /><br />
+		<h4 id="3.2">3.2) Step-by-step installation</h4>
+		<h5> Step 1 - Dowloading JSymphonic</h5>If it's not already done, the first thing to do is to dowload JSymphonic
+		from <a class='bbcode' href='http://symphonic.sourceforge.net/download.php?list.3' rel='external'>the dowload
+			section</a>.<br />If you are not sure about what version to pick, choose one stable. Stable versions are the
+		ones named (<a class='bbcode' href='http://symphonic.sourceforge.net/page.php?2#16' rel='external'>know more
+			about JSymphonic versions code name</a>). Unstable versions contain "a" or "b" letters, which means "alpha"
+		(unstable) and "beta" (testing).<br /><br />
+		<h5> Step 2 - Installing Java</h5>Second step consists in installing Java. But you only need to install it if
+		it's not already installed, which is the case in many computers. To know if java is installed, do the
+		following:<br />
+		<ul class='bbcode'>
+			<li class='bbcode'><strong class='bbcode bold'>Windows users (first method): </strong> <br />a) Open the
+				"Control Panel" from the Windows Start menu.<br /><img
+					src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig1.png"
+					alt="Windows XP Start menu" /><img
+					src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig2.png"
+					alt="Windows Vista Start menu" />
+				<div style="clear: both;"></div>b) Enter the "Add or Remove Programs" menu (Windows XP) or "Programs and
+				Features" menu (Windows Vista).<br /><img
+					src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig3.png"
+					alt="Windows XP Control Panel" /><img
+					src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig4.png"
+					alt="Windows Vista Control Panel" />
+				<div style="clear: both;"></div>c) Search for a "Java(TM)" entry in the list. If it is present, Java is
+				installed, you can skip to <a class='bbcode' href='#3.2-Step3'>step 3</a>, else you should install it.
+				(Note that JSymphonic requires at least version 1.5 (also called 5) to work. The last version (1.6, also
+				called 6) is advised.)<br /><img
+					src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig5.png"
+					alt="Windows XP Add or Remove Programs" />
+				<div style="clear: both;"></div><img
+					src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig6.png"
+					alt="Windows Vista Programs and Features" />
+				<div style="clear: both;"></div>To install Java, download it from the <a class='bbcode'
+					href='http://www.java.com' rel='external'>official website</a> and install it on your
+				computer.<br />The installation of Java is quite basic and it won't be explained here. If you have any
+				trouble, ask for help in <a class='bbcode' href='http://apps.sourceforge.net/phpbb/symphonic/index.php'
+					rel='external'>the forum</a>.<br /><br />
+			</li>
+			<li class='bbcode'><strong class='bbcode bold'>Windows users (second method): </strong> Open a terminal
+				(Start Menu>All Programs>Accessories>Command Prompt) and type <br />
+				<div class='code_highlight code-box' style='unicode-bidi: embed; direction: ltr'>
+					<code><span style="color: #000000">java&nbsp;-version</span></code></div><br />If the command
+				doesn't return an error, Java is installed, and it returns the version, which must be at least 1.5 to
+				run JSymphonic.<br /><br />
+			</li>
+			<li class='bbcode'><strong class='bbcode bold'>Linux users: </strong><br />Open a terminal and type<br />
+				<div class='code_highlight code-box' style='unicode-bidi: embed; direction: ltr'>
+					<code><span style="color: #000000">java&nbsp;-version</span></code></div><br />If the command
+				doesn't return an error, Java is installed, and it returns the version, which must be at least 1.5 to
+				run JSymphonic.<br /><br />
+			</li>
+			<li class='bbcode'><strong class='bbcode bold'>MacOS users: </strong> Java is always installed with MacOS.
+				However, you may not have the lastest version. See <a class='bbcode'
+					href='http://symphonic.sourceforge.net/page.php?2#11' rel='external'>this article in the FAQ</a> to
+				update your Java installation. Note: this is not compulsory.<br /></li>
+		</ul><br /><br />
+		<h5 id="3.2-Step3"> Step 3 - Installing JSymphonic</h5>You have downloaded a ".zip" file which you should unzip.
+		It contains two files: the application "JSymphonic_vXXX.jar" (a JAVA ".jar" program) and a README
+		file.<br />There is no installation process, you can copy the ".jar" where you want to store it. It is meant to
+		be stored on the player itself to have the program available whatever the computer you plug your player
+		to.<br />As it is shown on the picture below, you can create a "JSymphonic" folder on the root of your player to
+		store the application.<br /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig7.png"
+			alt="Installing JSymphonic" />On this picture, you can notice that a second file named "JSymphonic.xml" is
+		present. This file is generated when you use JSymphonic. It holds your configuration. If you try to delete it, a
+		new one will be created at next start up.<br />If you upgrade from version 0.2.x or 0.3.0a or 0.3.0a2, it is
+		advised to delete your old configuration file to create a clean new one.<br />
+		<div style="clear: both;"></div><br /><br /><br />
+		<h5 id="3.2-Step4"> Step 4 - Installing FFMPEG</h5>Walkmans can only play natively ATRAC and MP3 formats (and
+		WMA format for <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?6'
+			rel='external'>generations</a> 4 to 7 and AAC format for <a class='bbcode'
+			href='http://symphonic.sourceforge.net/page.php?6' rel='external'>generations</a> 6 and 7).<br />To transfer
+		other formats, JSymphonic uses FFMPEG to transcode the other formats to MP3.<br />If you only want to transfer
+		MP3 files, you can skip this step.<br />The installation of FFMPEG depends on your operating system.<br />
+		<ul class='bbcode'>
+			<li class='bbcode'> <strong class='bbcode bold'>Windows users: </strong> you need to download FFMPEG from <a
+					class='bbcode' href='http://symphonic.sourceforge.net/download.php?list.4' rel='external'>the
+					download section</a>. You should download the "r21657" version (the other one is for people using
+				version of JSymphonic previous to v0.3.0 stable). Once again, your are downloading a ".zip" file which
+				only needs to be unzipped and placed along with the JSymphonic program. You have to create a folder
+				named "ffmpeg-win32" in the folder containing "JSymphonic_vXXX.jar" and place the files "ffmpeg.exe" in
+				the "ffmpeg-win32" folder. This is pictured on the images below:<br /><img id="JS-Windows-fig8.png"
+					src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig8.png"
+					alt="Installing JSymphonic" /><img
+					src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig9.png"
+					alt="Installing JSymphonic" />
+				<div style="clear: both;"></div><br />
+			</li>
+			<li class='bbcode'> <strong class='bbcode bold'>Linux users: </strong> You need to have installed FFMPEG
+				with MP3 support. You may compile FFMPEG from the sources (google to find the sources) but your
+				distribution may offer you a<br />package. Please refer to your distribution's
+				documentation.<br /><br />For Ubuntu users (
+				<= 8.04), Hardy release and older can have a package for FFMPEG in the Medibuntu repository.<br />
+				<br />For Ubuntu users (>= 8.10), Intrepid release and newer offer a package of FFMPEG but it is
+				compiled WITHOUT MP3 support. You have to install this version first <br />and, to enable MP3 support,
+				you need to enable Multiverse repositories and install the following packages:<br />
+				<div class='code_highlight code-box' style='unicode-bidi: embed; direction: ltr'><code><span style="color: #000000">libavcodec-unstripped-51
 <br />libavdevice-unstripped-52
 <br />libavformat-unstripped-52
 <br />libavutil-unstripped-49
 <br />libpostproc-unstripped-51
 <br />libswscale-unstripped-0
-<br /></span></code></div><br /></li><li class='bbcode'> <strong class='bbcode bold'>MacOS users: </strong>You need to install "ffmpegX".  See: <a class='bbcode' href='http://www.ffmpegx.com' rel='external' >http://www.ffmpegx.com/</a>.<br /></li></ul><br /><br /><h5> Step 5 - Generating the key files</h5>This step is needed for players from <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?6' rel='external' >3rd generation</a> only. Others must skip this step.<br />3rd generation encrypts MP3 files and uses DRM in ATRAC files. JSymphonic cannot transfer files to your player without knowing its "encryption key". The key is stored into a file named "DvID.DAT". To generate this key file, please read the corresponding <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?2#5' rel='external' >article in the FAQ</a>.<br />NOTE: 3rd generation player owners: you must have this key file to use JSymphonic!!<br /><br />Moreover, ATRAC files transfered to the player must hold DRM. Once again, JSymphonic is not able to guess the DRM system of your player. If you want to be able to transfer ATRAC files, you should generate also the DRM key files. To generate these files, please read the corresponding <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?2#13' rel='external' >article in the FAQ</a>.<br />NOTE: these files are only needed to transfer ATRAC files, JSymphonic can be run without these files.<br />NOTE: this feature is still under test, and it may not work. Please share your experience with the developers on <a class='bbcode' href='http://apps.sourceforge.net/phpbb/symphonic/index.php' rel='external' >the forum</a>.<br /><br /><br /><h3 id="4">4) Using JSymphonic <span class="up">(<a class='bbcode' href='#toc' >UP</a>)</span></h3><h4 id="4.1">4.1) Running JSymphonic</h4>Before running JSymphonic, you should make sure that there is at least a folder named "OMGAUDIO" or "omgaudio" at the root of your player. JSymphonic will not be able to start if this folder is missing.<br />An empty OMGAUDIO folder doesn't prevent JSymphonic to work.<br /><br />To run JSymphonic, on most operating system, you just have to double-click on the application. If your unzipper program is run instead of JSymphonic, it means that the ".jar" extension is not associated with Java on your computer. <br />If you can change file associations, just associate the ".jar" extension with Java, and then you will be able to open JSymphonic by double-clicking on it.<br /><br />If you can't change the file association, you can run JSymphonic by typing the following command on a terminal:<br /><div class='code_highlight code-box' style='unicode-bidi: embed; direction: ltr'><code><span style="color: #000000">java&nbsp;-jar&nbsp;Path/Of/The/App/JSymphonic_vXXX.jar</span></code></div><br />by replacing "Path/Of/The/App" by the path where to find JSymphonic and "XXX" by the actual JSymphonic version you are using.<br /><br />Mac users, please note that an application is dedicated to run Java program on MacOS. It is called "Jar Launcher". Some users noticed that this application is not so stable and may not be able to run program from a remote device. In this case, you should either use the command line or run the program from your local disk. To open a terminal, go to "Applications > Utilities > Terminal".<br /><br /><br /><h4 id="4.2">4.2) First run</h4>On the first run (or if the configuration file "JSymphonic.xml" has been deleted), JSymphonic tries to auto detect your language, operating system, music and player paths. However, it cannot guess your player generation, so it will prompt you a window to ask for the generation (and check the device path). Here is the window:<br /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig10.png" alt="JSymphonic first run" /><div style="clear: both;"></div>If the device is plugged with an "OMGAUDIO" folder in it, the device path should be guessed, you can correct it if it is wrong.<br />You should set the generation according to <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?6' rel='external' >the list you can consult here</a>.<br /><br />Note that in the screenshot above, the device path is denoted by "..". This means that the device is the parent folder of the folder where JSymphonic is placed (it is the case, see <a class='bbcode' href='#JS-Windows-fig8.png' >the configuration I used to take the screenshot</a>). This has been guessed automaticly.<br /><br />Once you have click on the "Apply" button, JSymphonic's main window is displayed, as follow:<br /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig11.png" alt="JSymphonic first run" /><div style="clear: both;"></div>The right panel lists the content of the player, it is empty here. The left panel lists the music on your computer, called the "Local folder". As it is showed on the picture above, at startup, JSymphonic scans the local folder to find audio files. At first startup, the local folder corresponds to what JSymphonic has guessed. To guess the local folder, JSymphonic tests the following folders:<br /><ul class='bbcode'><li class='bbcode'>YourHomeFolder/My Documents/My Music<br /></li><li class='bbcode'>YourHomeFolder/My Documents/Music<br /></li><li class='bbcode'>YourHomeFolder/Documents/My Music<br /></li><li class='bbcode'>YourHomeFolder/Documents/Music<br /></li><li class='bbcode'>YourHomeFolder/My Music<br /></li><li class='bbcode'>YourHomeFolder/Music<br /></li><li class='bbcode'>YourHomeFolder/My Documents<br /></li><li class='bbcode'>YourHomeFolder/Documents<br /></li><li class='bbcode'>YourHomeFolder</li></ul><br />The first one of these folders which exist is taken as the local folder. If this guess doesn't suit you, you can modify it in <a class='bbcode' href='#4.3' >the Properties window</a>. Moreover if your home folder has a lot of files, the scanning process may take a while... so you can cancel it by clicking on the "Cancel" button to avoid an useless task.<br /><br /><h4 id="4.3">4.3) Configuring JSymphonic</h4>To configure JSymphonic, you should open the Properties window. To do so, you can click on the Properties icon on the toolbar: <img src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-configure32.png" alt="Properties icon" style="float: none;" /> or Click on "JSymphonic" menu > "Properties".<br /><br />Let's have a look on each tab in the Properties window.<br /><br /><ul class='bbcode'><li class='bbcode'> <strong class='bbcode bold'>Device an Path profiles: </strong><br /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig12.png" alt="Properties tab1" /><div style="clear: both;"></div>First tab is used to configure the profile. A profile is a collection of paths:<br />- the device path<br />- the local path: the folder containing your music on your computer<br />- the export path: it is a folder on your computer where JSymphonic copies the music files you want to export from the player to the computer.<br />- a temporary path: when files are transcoded (<em class='bbcode italic'>e.g.</em> from OGG to MP3), JSymphonic creates temporary files on the computer which are then transfered to the walkman. These files are stored in the temporary folder, and then deleted. It is advised to not use the device as a temporary folder since temporary files may used space needed for transfered files.<br />And a profile also stores the device generation.<br /><br />You can have as much profiles as you need. You may need several profiles if you have several devices or/and if you are used to run JSymphonic on several computers. Since the device and/or the local paths could be different from a computer to another, you can easily switch from a configuration to another by changing the profile.<br />The last selected profile in the Properties windows will be used as default at next start up. But if the local path of the default profile is not found when JSymphonic is launched, it tries to find a local folder existing from the other profiles and loads the corresponding profile.<br />To understand this behavior, here is a sketch:<br /><div class='indent'>Assume that you are using JSymphonic at home and at work. The default profile corresponds to your home computer, the configuration is such that:<br /><div class='code_highlight code-box' style='unicode-bidi: embed; direction: ltr'><code><span style="color: #000000">Device&nbsp;Path:&nbsp;..
-<br />Local&nbsp;Path:&nbsp;D:/My&nbsp;music</span></code></div><br />Note: The ".." address corresponding to the device path means "my parent folder". In this example, "JSymphonic_vXXX.jar" file is placed in a folder named "JSymphonic" placed at the root of the player. Therefore the player folder is always the parent folder of the folder where "JSymphonic_vXXX.jar" file is.<br /><br />You created another profile, named "Work", which the configuration is this:<br /><div class='code_highlight code-box' style='unicode-bidi: embed; direction: ltr'><code><span style="color: #000000">Device&nbsp;Path:&nbsp;..
-<br />Local&nbsp;Path:&nbsp;C:/Public/Music</span></code></div><br />Note: In this case, the device path is always correct, whatever the computer the player is plugged to.<br /><br />When you run JSymphonic at home, the default profile is loaded. All is fine since default profile is the home one. But when you run JSymphonic at work, it tries to read the content of the local folder of the default profile (the home profile). If (and only if) there is no folder named "My music" in D: hard drive, JSymphonic tries to read the content of the local folder of the second profile. Since you are at work, the corresponding local folder exists and JSymphonic loads automaticly the work profile.</div><br /><br /></li><li class='bbcode'> <strong class='bbcode bold'>Interface: </strong><br /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig13.png" alt="Properties tab2" /><div style="clear: both;"></div>In this tab, you can set the language, the theme of the graphical interface and configure the log feature.<br /><br />Note that Java comes along a default theme named "Metal". But it can also take the look'n'feel of the operating system (Java 1.6 only). A "Windows" theme is available when JSymphonic is run under Windows, and a "GTK" theme is available when JSymphonic is run under Linux. Mac users always have the look'n'feel of their OS.<br /><br />To know more about the log feature, please read <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?2#12' rel='external' >the corresponding article on the FAQ</a>.<br /><br /></li><li class='bbcode'> <strong class='bbcode bold'>Transfer: </strong><br /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig14.png" alt="Properties tab3" /><div style="clear: both;"></div>Last tab is used to configure the transfer policy.<br />In the "MP3 Options" frame, you can specify if you want JSymphonic to transcode all your music files before sending them to the device, or only the ones which are not compatible with your device. You also pick the bitrate to use when a file is transcoded.<br /><br />In the "Tag utilization" frame, you can specify if you want JSymphonic to used the tag (meta-data) available in the audio files or if you prefer JSymphonic to guess the song title, artist, album and genre from the files/folders structure.<br />When tags are missing or not used, JSymphonic uses a given pattern to guess if the artist, album,... names should be taken from the file, the parent or the grand-parent folder (or whatever you want). You can compose your own pattern respecting the rules giving in that window. On the screenshot above, the whole file name is used as the title name, the parent folder is used as the album name and the grand-parent folder is used as the artist name.<br />If the pattern is <img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig17.png" alt="Guessing pattern" style="float: none;" />, the string after ". " in the file name is used as title, the string betwen "] - " and ". " in the file name is used as the track number, the string between " [" and "] - " in the file name is used as the year, the string before " [" in the file name is used as the album, the string between " [" and "]" in the parent folder name is used as the genre and the string before " [" in the parent folder name is used as the artist.<br /><br />NOTE: if JSymphonic is translated into your language, the word "Artist", "Album",... should be written in your language.<br /></li></ul><br /><br /><br /><h4 id="4.4">4.4) JSymphonic's features tour</h4><h5>Overview</h5>The image below depicted the main window of JSymphonic.<br /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig15.png" alt="JSymphonic main window" /><div style="clear: both;"></div><ul class='bbcode'><li class='bbcode'> <strong class='bbcode bold'>frame (A)</strong> is the toolbar. From this toolbar you can import, export or delete music on your device, apply or revert the changes made, open the properties window and change the profile.<br /></li><li class='bbcode'> <strong class='bbcode bold'>frame (B)</strong> is the local panel, it is composed by two tabs: "the local folder" (which lists the music files on your computer) and the "export folder" (which is used to copy the files you want to import from the player to the computer). Note that if the local and the export folders are taken the same, only the local folder tab is available.<br />A filter function helps you to find some precise files (but not folders).<br />You can choose with the drop down box at the bottom of the panel which formats of music you want to be appearing in the panel. By default it displays all formats supported by JSymphonic. (If formats are missing, <a class='bbcode' href='#3.2-Step4' >you should install FFMPEG</a>.)<br /></li><li class='bbcode'> <strong class='bbcode bold'>frame (B)</strong> is the device panel, it lists the content of your device.<br />As in the local panel, a filter function helps you to fing songs.<br />The view of the content can be ordered in various ways by changing the selected item in the drop down box at the top of the panel.<br />A progression bar at the bottom of the panel informs you about the space left on the device.<br /></li></ul><br />Transfering music to the device is decomposed into two phases. First, you schedule all the changes you want and then you apply the changes. Scheduling import, export or deletion is instantaneous, and the content of the player is not altered. You have to apply the changes to modify the content in your device.<br /><br /><h5>Importing, exporting or deleting music</h5>Importing music means transfer music from the computer to the player. <strong class='bbcode bold'>To import music</strong>, select one or several file(s) or/and folder(s) from the "Local folder" (B) and press the import button: <img src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-import32.png" alt="Import icon"  style="float: none;" />. Files scheduled for importation will appear <span style='color:#00ff66'>in green</span> on the device panel. This only schedule the importation without modifying the content of your player. To apply the changes, click then on the Apply button: <img src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-save32.png" alt="Apply changes icon"  style="float: none;" />.<br /><br /><br /><br />Exporting music means transfer music from the player to the computer. <strong class='bbcode bold'>To export music</strong>, select one or several title(s) or/and album(s) from the "Device panel" (C) and press the export button: <img src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-export32.png" alt="Export icon"  style="float: none;" />. Files scheduled for exportation will appear <span style='color:#0000ff'>in blue</span> on the device panel. Once again, the changes are only scheduled, you have to press the Apply button to apply the changes.<br /><br /><br /><strong class='bbcode bold'>To remove music</strong> from your player, select one or several title(s) or/and album(s) from the "Device panel" (C) and press the delete button: <img src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-remove32.png" alt="Delete icon"   style="float: none;" />.  Files scheduled for deletion will appear <span style='color:#ff0000'>in red</span> on the device panel. Once again, the changes are only scheduled, you have to press the Apply button to apply the changes.<br /><br /><br />You don't have to apply changes after each actions. It is advised to make all the changes you want and to only apply when you're done.<br /><br />If you made a mistake while sheduling import/export/deletion, you can cancel all changes and reload the device content by clicking on the undo icon: <img src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-revert32.png" alt="Undo icon"   style="float: none;" />.<br /><br /><h5>A quick view of the transfer panel</h5>Once you have pressed the Apply button, the device panel is replaced by a transfer panel which informs you about the transfer progress. Here is the transfer panel:<br /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig16.png" alt="JSymphonic transfer panel" /><div style="clear: both;"></div>The transfer panel is composed of three elements:<br /><ul class='bbcode'><li class='bbcode'> (Ca): the overall progress,<br /></li><li class='bbcode'> (Cb): the current actions (in the screenshot, JSymphonic was in the "import" phase and it was copying the file "And so what,..." by "My Favoite Band" and it also was encoding the file "Oh..." by "The Oh Oh and Yeah Yeah" since this last file wasn't in MP3 format, so it had to be transcoded.)<br /></li><li class='bbcode'> (Cc): a "stop transfer" button which stop the transfer after the current operation. Note that if you interrupt a transfer, the database won't match the content of the player and you might get problems. It is advised to re-generate the database after interrupting a transfer.<br /></li></ul><br /><br /><h5>Re-generate the database</h5>To re-generate the database on the device, you just have to run JSymphonic and click the "Apply changes" button. Even if no change has been made, the database will be re-generated according to the content of the player.<br /><br /><h5>Mounting/Unmouting the device</h5>The device panel proposes a "mount/unmount" device button:  <img src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-mount.png" alt="Mount icon"   style="float: none;" />/ <img src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-device_mounted.png" alt="Unmount icon"   style="float: none;" />. This button only mounts/unmounts the device from JSymphonic !!! It's a way to be sure that JSymphonic doesn't use the device anymore. <strong class='bbcode bold'>It DOES NOT REPLACE the "Unmount safety" option given by your operating system!!</strong><br />In a daily utilization of JSymphonic, these buttons shouldn't be used!!<br /><br /><h3 id="5">5)  Troubleshooting <span class="up">(<a class='bbcode' href='#toc' >UP</a>)</span></h3>If you have a problem, please read this documentation and <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?2' rel='external' >the FAQ</a> before asking for help on <a class='bbcode' href='http://apps.sourceforge.net/phpbb/symphonic/index.php' rel='external' >our forum</a>.<br /><br />If you want to report a bug or propose an improvement, please use <a class='bbcode' href='http://apps.sourceforge.net/phpbb/symphonic/index.php' rel='external' >our forum</a>. (It is advised to provided a <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?2#12' rel='external' >log of the execution</a> when reporting a bug.)<br /><br /><br /><h3 id="6">6)  Credits and Licence Information <span class="up">(<a class='bbcode' href='#toc' >UP</a>)</span></h3><h4 id="6.1">6.1) JSymphonic team</h4>Patrick Balleux (founder)<br />Nicolas Cardoso De Castro<br />Daniel Žalar<br /><br /><h4 id="6.2">6.2) Symphonic plugin, openSonyDb</h4>Garthps<br />Mephx<br /><br /><h4 id="6.3">6.3) Translators</h4>Zhang Feng (Chinese)<br />Hpeat (Czech and Slovak)<br />Nicolas Cardoso De Castro (French)<br />Henning (German)<br />Mephx (Portuguese)<br />Lunatik, Mayday85 (Russian)<br />Daniel Žalar (Slovenian)<br />Hernan Badenes (Spanish)<br />Lenborje (Swedish)<br />Jackal53 (Turkish)<br /><br /><h4 id="6.4">6.4) Misc</h4>MetricJester (Documentation)<br />Ulluss (Website)<br />Pahra (Logo)<br />Henning (Translation tool)<br /><br /><h4 id="6.5">6.5) Thanks</h4>Thanks to the testers of the early alpha versions (Pipo, Simon Lejeune, Hernan Badenes, X, Maximillian, Marcus, Paulo Carvalho, Ace Denghar, Guillaume Lecomte)<br />Thanks to aingoppa, Pedro and dm_ig for the bug fixes.<br /><br /><h4 id="6.6">6.6)  License</h4>JSymphonic is published under the GNU public license (<a class='bbcode' href='http://symphonic.sourceforge.net/page.php?5' rel='external' >click here to know more</a>).<br /><br /><br /><br /><br />If you would like more information about Symphonic, or would like to join our team please <a class='bbcode' href='mailto:nicolas_cardoso@users.sourceforge.net' >contact us</a>.<br /><br /><em class='bbcode italic'>Last update: 13/02/2010</em>
-<!-- 
+<br /></span></code></div><br />
+			</li>
+			<li class='bbcode'> <strong class='bbcode bold'>MacOS users: </strong>You need to install "ffmpegX". See: <a
+					class='bbcode' href='http://www.ffmpegx.com' rel='external'>http://www.ffmpegx.com/</a>.<br /></li>
+		</ul><br /><br />
+		<h5> Step 5 - Generating the key files</h5>This step is needed for players from <a class='bbcode'
+			href='http://symphonic.sourceforge.net/page.php?6' rel='external'>3rd generation</a> only. Others must skip
+		this step.<br />3rd generation encrypts MP3 files and uses DRM in ATRAC files. JSymphonic cannot transfer files
+		to your player without knowing its "encryption key". The key is stored into a file named "DvID.DAT". To generate
+		this key file, please read the corresponding <a class='bbcode'
+			href='http://symphonic.sourceforge.net/page.php?2#5' rel='external'>article in the FAQ</a>.<br />NOTE: 3rd
+		generation player owners: you must have this key file to use JSymphonic!!<br /><br />Moreover, ATRAC files
+		transfered to the player must hold DRM. Once again, JSymphonic is not able to guess the DRM system of your
+		player. If you want to be able to transfer ATRAC files, you should generate also the DRM key files. To generate
+		these files, please read the corresponding <a class='bbcode'
+			href='http://symphonic.sourceforge.net/page.php?2#13' rel='external'>article in the FAQ</a>.<br />NOTE:
+		these files are only needed to transfer ATRAC files, JSymphonic can be run without these files.<br />NOTE: this
+		feature is still under test, and it may not work. Please share your experience with the developers on <a
+			class='bbcode' href='http://apps.sourceforge.net/phpbb/symphonic/index.php' rel='external'>the
+			forum</a>.<br /><br /><br />
+		<h3 id="4">4) Using JSymphonic <span class="up">(<a class='bbcode' href='#toc'>UP</a>)</span></h3>
+		<h4 id="4.1">4.1) Running JSymphonic</h4>Before running JSymphonic, you should make sure that there is at least
+		a folder named "OMGAUDIO" or "omgaudio" at the root of your player. JSymphonic will not be able to start if this
+		folder is missing.<br />An empty OMGAUDIO folder doesn't prevent JSymphonic to work.<br /><br />To run
+		JSymphonic, on most operating system, you just have to double-click on the application. If your unzipper program
+		is run instead of JSymphonic, it means that the ".jar" extension is not associated with Java on your computer.
+		<br />If you can change file associations, just associate the ".jar" extension with Java, and then you will be
+		able to open JSymphonic by double-clicking on it.<br /><br />If you can't change the file association, you can
+		run JSymphonic by typing the following command on a terminal:<br />
+		<div class='code_highlight code-box' style='unicode-bidi: embed; direction: ltr'>
+			<code><span style="color: #000000">java&nbsp;-jar&nbsp;Path/Of/The/App/JSymphonic_vXXX.jar</span></code>
+		</div><br />by replacing "Path/Of/The/App" by the path where to find JSymphonic and "XXX" by the actual
+		JSymphonic version you are using.<br /><br />Mac users, please note that an application is dedicated to run Java
+		program on MacOS. It is called "Jar Launcher". Some users noticed that this application is not so stable and may
+		not be able to run program from a remote device. In this case, you should either use the command line or run the
+		program from your local disk. To open a terminal, go to "Applications > Utilities > Terminal".<br /><br /><br />
+		<h4 id="4.2">4.2) First run</h4>On the first run (or if the configuration file "JSymphonic.xml" has been
+		deleted), JSymphonic tries to auto detect your language, operating system, music and player paths. However, it
+		cannot guess your player generation, so it will prompt you a window to ask for the generation (and check the
+		device path). Here is the window:<br /><img
+			src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig10.png" alt="JSymphonic first run" />
+		<div style="clear: both;"></div>If the device is plugged with an "OMGAUDIO" folder in it, the device path should
+		be guessed, you can correct it if it is wrong.<br />You should set the generation according to <a class='bbcode'
+			href='http://symphonic.sourceforge.net/page.php?6' rel='external'>the list you can consult
+			here</a>.<br /><br />Note that in the screenshot above, the device path is denoted by "..". This means that
+		the device is the parent folder of the folder where JSymphonic is placed (it is the case, see <a class='bbcode'
+			href='#JS-Windows-fig8.png'>the configuration I used to take the screenshot</a>). This has been guessed
+		automaticly.<br /><br />Once you have click on the "Apply" button, JSymphonic's main window is displayed, as
+		follow:<br /><img src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig11.png"
+			alt="JSymphonic first run" />
+		<div style="clear: both;"></div>The right panel lists the content of the player, it is empty here. The left
+		panel lists the music on your computer, called the "Local folder". As it is showed on the picture above, at
+		startup, JSymphonic scans the local folder to find audio files. At first startup, the local folder corresponds
+		to what JSymphonic has guessed. To guess the local folder, JSymphonic tests the following folders:<br />
+		<ul class='bbcode'>
+			<li class='bbcode'>YourHomeFolder/My Documents/My Music<br /></li>
+			<li class='bbcode'>YourHomeFolder/My Documents/Music<br /></li>
+			<li class='bbcode'>YourHomeFolder/Documents/My Music<br /></li>
+			<li class='bbcode'>YourHomeFolder/Documents/Music<br /></li>
+			<li class='bbcode'>YourHomeFolder/My Music<br /></li>
+			<li class='bbcode'>YourHomeFolder/Music<br /></li>
+			<li class='bbcode'>YourHomeFolder/My Documents<br /></li>
+			<li class='bbcode'>YourHomeFolder/Documents<br /></li>
+			<li class='bbcode'>YourHomeFolder</li>
+		</ul><br />The first one of these folders which exist is taken as the local folder. If this guess doesn't suit
+		you, you can modify it in <a class='bbcode' href='#4.3'>the Properties window</a>. Moreover if your home folder
+		has a lot of files, the scanning process may take a while... so you can cancel it by clicking on the "Cancel"
+		button to avoid an useless task.<br /><br />
+		<h4 id="4.3">4.3) Configuring JSymphonic</h4>To configure JSymphonic, you should open the Properties window. To
+		do so, you can click on the Properties icon on the toolbar: <img
+			src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-configure32.png" alt="Properties icon"
+			style="float: none;" /> or Click on "JSymphonic" menu > "Properties".<br /><br />Let's have a look on each
+		tab in the Properties window.<br /><br />
+		<ul class='bbcode'>
+			<li class='bbcode'> <strong class='bbcode bold'>Device an Path profiles: </strong><br /><img
+					src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig12.png"
+					alt="Properties tab1" />
+				<div style="clear: both;"></div>First tab is used to configure the profile. A profile is a collection of
+				paths:<br />- the device path<br />- the local path: the folder containing your music on your
+				computer<br />- the export path: it is a folder on your computer where JSymphonic copies the music files
+				you want to export from the player to the computer.<br />- a temporary path: when files are transcoded
+				(<em class='bbcode italic'>e.g.</em> from OGG to MP3), JSymphonic creates temporary files on the
+				computer which are then transfered to the walkman. These files are stored in the temporary folder, and
+				then deleted. It is advised to not use the device as a temporary folder since temporary files may used
+				space needed for transfered files.<br />And a profile also stores the device generation.<br /><br />You
+				can have as much profiles as you need. You may need several profiles if you have several devices or/and
+				if you are used to run JSymphonic on several computers. Since the device and/or the local paths could be
+				different from a computer to another, you can easily switch from a configuration to another by changing
+				the profile.<br />The last selected profile in the Properties windows will be used as default at next
+				start up. But if the local path of the default profile is not found when JSymphonic is launched, it
+				tries to find a local folder existing from the other profiles and loads the corresponding
+				profile.<br />To understand this behavior, here is a sketch:<br />
+				<div class='indent'>Assume that you are using JSymphonic at home and at work. The default profile
+					corresponds to your home computer, the configuration is such that:<br />
+					<div class='code_highlight code-box' style='unicode-bidi: embed; direction: ltr'><code><span style="color: #000000">Device&nbsp;Path:&nbsp;..
+<br />Local&nbsp;Path:&nbsp;D:/My&nbsp;music</span></code></div><br />Note: The ".." address corresponding to the
+					device path means "my parent folder". In this example, "JSymphonic_vXXX.jar" file is placed in a
+					folder named "JSymphonic" placed at the root of the player. Therefore the player folder is always
+					the parent folder of the folder where "JSymphonic_vXXX.jar" file is.<br /><br />You created another
+					profile, named "Work", which the configuration is this:<br />
+					<div class='code_highlight code-box' style='unicode-bidi: embed; direction: ltr'><code><span style="color: #000000">Device&nbsp;Path:&nbsp;..
+<br />Local&nbsp;Path:&nbsp;C:/Public/Music</span></code></div><br />Note: In this case, the device path is always
+					correct, whatever the computer the player is plugged to.<br /><br />When you run JSymphonic at home,
+					the default profile is loaded. All is fine since default profile is the home one. But when you run
+					JSymphonic at work, it tries to read the content of the local folder of the default profile (the
+					home profile). If (and only if) there is no folder named "My music" in D: hard drive, JSymphonic
+					tries to read the content of the local folder of the second profile. Since you are at work, the
+					corresponding local folder exists and JSymphonic loads automaticly the work profile.
+				</div><br /><br />
+			</li>
+			<li class='bbcode'> <strong class='bbcode bold'>Interface: </strong><br /><img
+					src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig13.png"
+					alt="Properties tab2" />
+				<div style="clear: both;"></div>In this tab, you can set the language, the theme of the graphical
+				interface and configure the log feature.<br /><br />Note that Java comes along a default theme named
+				"Metal". But it can also take the look'n'feel of the operating system (Java 1.6 only). A "Windows" theme
+				is available when JSymphonic is run under Windows, and a "GTK" theme is available when JSymphonic is run
+				under Linux. Mac users always have the look'n'feel of their OS.<br /><br />To know more about the log
+				feature, please read <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?2#12'
+					rel='external'>the corresponding article on the FAQ</a>.<br /><br />
+			</li>
+			<li class='bbcode'> <strong class='bbcode bold'>Transfer: </strong><br /><img
+					src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig14.png"
+					alt="Properties tab3" />
+				<div style="clear: both;"></div>Last tab is used to configure the transfer policy.<br />In the "MP3
+				Options" frame, you can specify if you want JSymphonic to transcode all your music files before sending
+				them to the device, or only the ones which are not compatible with your device. You also pick the
+				bitrate to use when a file is transcoded.<br /><br />In the "Tag utilization" frame, you can specify if
+				you want JSymphonic to used the tag (meta-data) available in the audio files or if you prefer JSymphonic
+				to guess the song title, artist, album and genre from the files/folders structure.<br />When tags are
+				missing or not used, JSymphonic uses a given pattern to guess if the artist, album,... names should be
+				taken from the file, the parent or the grand-parent folder (or whatever you want). You can compose your
+				own pattern respecting the rules giving in that window. On the screenshot above, the whole file name is
+				used as the title name, the parent folder is used as the album name and the grand-parent folder is used
+				as the artist name.<br />If the pattern is <img
+					src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig17.png"
+					alt="Guessing pattern" style="float: none;" />, the string after ". " in the file name is used as
+				title, the string betwen "] - " and ". " in the file name is used as the track number, the string
+				between " [" and "] - " in the file name is used as the year, the string before " [" in the file name is
+				used as the album, the string between " [" and "]" in the parent folder name is used as the genre and
+				the string before " [" in the parent folder name is used as the artist.<br /><br />NOTE: if JSymphonic
+				is translated into your language, the word "Artist", "Album",... should be written in your
+				language.<br />
+			</li>
+		</ul><br /><br /><br />
+		<h4 id="4.4">4.4) JSymphonic's features tour</h4>
+		<h5>Overview</h5>The image below depicted the main window of JSymphonic.<br /><img
+			src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig15.png"
+			alt="JSymphonic main window" />
+		<div style="clear: both;"></div>
+		<ul class='bbcode'>
+			<li class='bbcode'> <strong class='bbcode bold'>frame (A)</strong> is the toolbar. From this toolbar you can
+				import, export or delete music on your device, apply or revert the changes made, open the properties
+				window and change the profile.<br /></li>
+			<li class='bbcode'> <strong class='bbcode bold'>frame (B)</strong> is the local panel, it is composed by two
+				tabs: "the local folder" (which lists the music files on your computer) and the "export folder" (which
+				is used to copy the files you want to import from the player to the computer). Note that if the local
+				and the export folders are taken the same, only the local folder tab is available.<br />A filter
+				function helps you to find some precise files (but not folders).<br />You can choose with the drop down
+				box at the bottom of the panel which formats of music you want to be appearing in the panel. By default
+				it displays all formats supported by JSymphonic. (If formats are missing, <a class='bbcode'
+					href='#3.2-Step4'>you should install FFMPEG</a>.)<br /></li>
+			<li class='bbcode'> <strong class='bbcode bold'>frame (B)</strong> is the device panel, it lists the content
+				of your device.<br />As in the local panel, a filter function helps you to fing songs.<br />The view of
+				the content can be ordered in various ways by changing the selected item in the drop down box at the top
+				of the panel.<br />A progression bar at the bottom of the panel informs you about the space left on the
+				device.<br /></li>
+		</ul><br />Transfering music to the device is decomposed into two phases. First, you schedule all the changes
+		you want and then you apply the changes. Scheduling import, export or deletion is instantaneous, and the content
+		of the player is not altered. You have to apply the changes to modify the content in your device.<br /><br />
+		<h5>Importing, exporting or deleting music</h5>Importing music means transfer music from the computer to the
+		player. <strong class='bbcode bold'>To import music</strong>, select one or several file(s) or/and folder(s)
+		from the "Local folder" (B) and press the import button: <img
+			src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-import32.png" alt="Import icon"
+			style="float: none;" />. Files scheduled for importation will appear <span style='color:#00ff66'>in
+			green</span> on the device panel. This only schedule the importation without modifying the content of your
+		player. To apply the changes, click then on the Apply button: <img
+			src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-save32.png" alt="Apply changes icon"
+			style="float: none;" />.<br /><br /><br /><br />Exporting music means transfer music from the player to the
+		computer. <strong class='bbcode bold'>To export music</strong>, select one or several title(s) or/and album(s)
+		from the "Device panel" (C) and press the export button: <img
+			src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-export32.png" alt="Export icon"
+			style="float: none;" />. Files scheduled for exportation will appear <span style='color:#0000ff'>in
+			blue</span> on the device panel. Once again, the changes are only scheduled, you have to press the Apply
+		button to apply the changes.<br /><br /><br /><strong class='bbcode bold'>To remove music</strong> from your
+		player, select one or several title(s) or/and album(s) from the "Device panel" (C) and press the delete button:
+		<img src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-remove32.png" alt="Delete icon"
+			style="float: none;" />. Files scheduled for deletion will appear <span style='color:#ff0000'>in red</span>
+		on the device panel. Once again, the changes are only scheduled, you have to press the Apply button to apply the
+		changes.<br /><br /><br />You don't have to apply changes after each actions. It is advised to make all the
+		changes you want and to only apply when you're done.<br /><br />If you made a mistake while sheduling
+		import/export/deletion, you can cancel all changes and reload the device content by clicking on the undo icon:
+		<img src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-revert32.png" alt="Undo icon"
+			style="float: none;" />.<br /><br />
+		<h5>A quick view of the transfer panel</h5>Once you have pressed the Apply button, the device panel is replaced
+		by a transfer panel which informs you about the transfer progress. Here is the transfer panel:<br /><img
+			src="http://symphonic.sourceforge.net/e107_themes/images/JS-Windows-fig16.png"
+			alt="JSymphonic transfer panel" />
+		<div style="clear: both;"></div>The transfer panel is composed of three elements:<br />
+		<ul class='bbcode'>
+			<li class='bbcode'> (Ca): the overall progress,<br /></li>
+			<li class='bbcode'> (Cb): the current actions (in the screenshot, JSymphonic was in the "import" phase and
+				it was copying the file "And so what,..." by "My Favoite Band" and it also was encoding the file "Oh..."
+				by "The Oh Oh and Yeah Yeah" since this last file wasn't in MP3 format, so it had to be
+				transcoded.)<br /></li>
+			<li class='bbcode'> (Cc): a "stop transfer" button which stop the transfer after the current operation. Note
+				that if you interrupt a transfer, the database won't match the content of the player and you might get
+				problems. It is advised to re-generate the database after interrupting a transfer.<br /></li>
+		</ul><br /><br />
+		<h5>Re-generate the database</h5>To re-generate the database on the device, you just have to run JSymphonic and
+		click the "Apply changes" button. Even if no change has been made, the database will be re-generated according
+		to the content of the player.<br /><br />
+		<h5>Mounting/Unmouting the device</h5>The device panel proposes a "mount/unmount" device button: <img
+			src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-mount.png" alt="Mount icon"
+			style="float: none;" />/ <img
+			src="http://symphonic.sourceforge.net/e107_themes/images/JS-icon-device_mounted.png" alt="Unmount icon"
+			style="float: none;" />. This button only mounts/unmounts the device from JSymphonic !!! It's a way to be
+		sure that JSymphonic doesn't use the device anymore. <strong class='bbcode bold'>It DOES NOT REPLACE the
+			"Unmount safety" option given by your operating system!!</strong><br />In a daily utilization of JSymphonic,
+		these buttons shouldn't be used!!<br /><br />
+		<h3 id="5">5) Troubleshooting <span class="up">(<a class='bbcode' href='#toc'>UP</a>)</span></h3>If you have a
+		problem, please read this documentation and <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?2'
+			rel='external'>the FAQ</a> before asking for help on <a class='bbcode'
+			href='http://apps.sourceforge.net/phpbb/symphonic/index.php' rel='external'>our forum</a>.<br /><br />If you
+		want to report a bug or propose an improvement, please use <a class='bbcode'
+			href='http://apps.sourceforge.net/phpbb/symphonic/index.php' rel='external'>our forum</a>. (It is advised to
+		provided a <a class='bbcode' href='http://symphonic.sourceforge.net/page.php?2#12' rel='external'>log of the
+			execution</a> when reporting a bug.)<br /><br /><br />
+		<h3 id="6">6) Credits and Licence Information <span class="up">(<a class='bbcode' href='#toc'>UP</a>)</span>
+		</h3>
+		<h4 id="6.1">6.1) JSymphonic team</h4>Patrick Balleux (founder)<br />Nicolas Cardoso De Castro<br />Daniel
+		Žalar<br /><br />
+		<h4 id="6.2">6.2) Symphonic plugin, openSonyDb</h4>Garthps<br />Mephx<br /><br />
+		<h4 id="6.3">6.3) Translators</h4>Zhang Feng (Chinese)<br />Hpeat (Czech and Slovak)<br />Nicolas Cardoso De
+		Castro (French)<br />Henning (German)<br />Mephx (Portuguese)<br />Lunatik, Mayday85 (Russian)<br />Daniel Žalar
+		(Slovenian)<br />Hernan Badenes (Spanish)<br />Lenborje (Swedish)<br />Jackal53 (Turkish)<br /><br />
+		<h4 id="6.4">6.4) Misc</h4>MetricJester (Documentation)<br />Ulluss (Website)<br />Pahra (Logo)<br />Henning
+		(Translation tool)<br /><br />
+		<h4 id="6.5">6.5) Thanks</h4>Thanks to the testers of the early alpha versions (Pipo, Simon Lejeune, Hernan
+		Badenes, X, Maximillian, Marcus, Paulo Carvalho, Ace Denghar, Guillaume Lecomte)<br />Thanks to aingoppa, Pedro
+		and dm_ig for the bug fixes.<br /><br />
+		<h4 id="6.6">6.6) License</h4>JSymphonic is published under the GNU public license (<a class='bbcode'
+			href='http://symphonic.sourceforge.net/page.php?5' rel='external'>click here to know
+			more</a>).<br /><br /><br /><br /><br />If you would like more information about Symphonic, or would like to
+		join our team please <a class='bbcode' href='mailto:nicolas_cardoso@users.sourceforge.net'>contact
+			us</a>.<br /><br /><em class='bbcode italic'>Last update: 13/02/2010</em>
+		<!-- 
 To generate the readme:
  - The online documentation link should be updated.
 -->
 
 
-</div>	<!-- end content -->	
+	</div> <!-- end content -->
 </body>
+
 </html>
