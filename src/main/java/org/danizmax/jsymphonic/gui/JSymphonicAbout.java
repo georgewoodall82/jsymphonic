@@ -301,7 +301,7 @@ public class JSymphonicAbout extends javax.swing.JFrame {
     private void loadLicenseTextArea() {
     	
     	String license = ResourceLoader.getResourceFileAsString("COPYING_"+Locale.getDefault().toString()+".txt");
-    	if (license == null || license.isBlank()) {
+    	if (license == null || license.isEmpty()) {
     		license = ResourceLoader.getResourceFileAsString("COPYING.txt");
     	}
         licenseTextArea.append(license); // Add each read line to the text area
