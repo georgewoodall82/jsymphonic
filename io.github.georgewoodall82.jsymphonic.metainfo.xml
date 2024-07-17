@@ -24,6 +24,11 @@
 
   <content_rating type="oars-1.1" />
 
+  <branding>
+    <color type="primary" scheme_preference="light">#ff6e00</color>
+    <color type="primary" scheme_preference="dark">#666666</color>
+  </branding>
+
   <releases>
     <release version="0.5.3" date="2024-07-16">
     </release>
