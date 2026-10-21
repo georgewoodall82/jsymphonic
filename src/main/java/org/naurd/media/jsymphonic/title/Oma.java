@@ -48,6 +48,7 @@ public class Oma  extends Title{
     protected int version = Oma.ATRAC; // Version of the OMA file (only used when wrapping OMA)
     protected int drm = Oma.NO_DRM; // tell if the file holds DRM (only used when wrapping OMA)
     protected byte[] drmKey = new byte[0x30]; // the key corresponding to the DRM  (only used when wrapping DRMed OMA)
+    protected byte[] contentId = new byte[0x18]; // the content ID written by SonicStage in the EA3 part of the tag, zeros if none (only used when wrapping OMA)
 
 /* CONSTANT */
     // Versions constant
@@ -134,6 +135,7 @@ public class Oma  extends Title{
             framesNumber = oma.getFramesNumber();
             drm = oma.getDrm();
             drmKey = oma.getDrmKey();
+            contentId = oma.getContentId();
         }
     }
 
@@ -172,6 +174,7 @@ public class Oma  extends Title{
         version = title.getVersion();
         drm = title.getDrm();
         drmKey = title.getDrmKey();
+        contentId = title.getContentId();
     }
 
     /**
@@ -323,6 +326,14 @@ public class Oma  extends Title{
      */
     public byte[] getDrmKey(){
         return drmKey;
+    }
+
+    /**
+     * Obtains the content ID written by SonicStage in the file (make only a sense when an OMA is wrapped).
+     * @return The 0x18 bytes of the content ID, as written in the 05CIDLST file. Bytes are zeros if the file has no content ID.
+     */
+    public byte[] getContentId(){
+        return contentId;
     }
 
     /**
@@ -797,11 +808,17 @@ public class Oma  extends Title{
             // Re-open the file
             omaFileStream = sourceFile.toURI().toURL().openStream();
             // Skip the first part
-            long bytesToskip = size + 32; // amont of bytes to be skipped = the ea3 tag plus 32 useless bytes
+            long bytesToskip = size + 8; // amont of bytes to be skipped = the ea3 tag plus the "EA3" label, version and protection
             long bytesSkipped = 0; // count the amount of bytes really skipped
             // call skip method until the correct number of bytes have been skipped
             while((bytesSkipped = omaFileStream.skip(bytesToskip)) > 0) { // This turns out to be necessary since the skip method is not able to skip the correct amount of bytes once when tag holds a cover
                 bytesToskip = bytesToskip - bytesSkipped; // substract bytes correctly skipped
+            }
+
+            // Read the content ID (24 bytes)
+            byte[] contentIdRead = new byte[0x18];
+            if(omaFileStream.read(contentIdRead) == contentIdRead.length){
+                contentId = contentIdRead;
             }
 
             // Read the type of wrapped format

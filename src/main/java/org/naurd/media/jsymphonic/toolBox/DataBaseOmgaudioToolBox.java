@@ -75,7 +75,7 @@ public class DataBaseOmgaudioToolBox {
      * @author nicolas_cardoso
      */
     public static void write00GRTLST(File omgaudioDir) throws Exception{
-        File table0 = new File(omgaudioDir + "/00gtrlst.dat");
+        File table0 = new File(omgaudioDir + "/00GTRLST.DAT");
         RandomAccessFile rafTable0;
         
         // Create a new file
@@ -126,8 +126,21 @@ public class DataBaseOmgaudioToolBox {
      * @author nicolas_cardoso
      */
     public static void write01TREE01and03GINF01(File omgaudioDir, JSymphonicMap titles) throws Exception{
-        File table11 = new File(omgaudioDir + "/01tree01.dat");
-        File table31 = new File(omgaudioDir + "/03ginf01.dat");
+        write01TREE01and03GINF01(omgaudioDir, titles, true);
+    }
+
+    /**
+     * Write 01TREE01 and 03GINF01 files in OMGAUDIO folder. This method should be used while writing the database for generation using a OMGAUDIO folder.
+     *
+     *@param omgaudioDir Instance of the OMGAUDIO folder where to write the file.
+     *@param titles List of the titles in the data base.
+     *@param artistInAlbumName True to prefix the album names with the artist name (needed by NW-E10x players), false to write the album name only.
+     *
+     *@throws Exception
+     */
+    public static void write01TREE01and03GINF01(File omgaudioDir, JSymphonicMap titles, boolean artistInAlbumName) throws Exception{
+        File table11 = new File(omgaudioDir + "/01TREE01.DAT");
+        File table31 = new File(omgaudioDir + "/03GINF01.DAT");
         RandomAccessFile rafTable11;
         RandomAccessFile rafTable31;
         
@@ -156,6 +169,7 @@ public class DataBaseOmgaudioToolBox {
         //Get the information needed
         List titlesIdInTPLBlist = new ArrayList();
         List albumsSorted = new ArrayList();
+        List albumNamesSorted = new ArrayList();
         List artistsSorted = new ArrayList();
         List genresSorted = new ArrayList();
         List titleKeysSorted = new ArrayList();
@@ -186,10 +200,11 @@ public class DataBaseOmgaudioToolBox {
                 GPLBelements.add(j);
                 // Sort album info
                 albumsSorted.add(albumName);
+                albumNamesSorted.add(artistInAlbumName ? albumName : tempTitle.getAlbum());
                 artistsSorted.add(tempTitle.getArtist());
                 genresSorted.add(tempTitle.getGenre());
                 // Sort the key of the last album, if any
-                if(albumsSorted.size() > 0){
+                if(albumsSorted.size() > 1){
                     titleKeysSorted.add(tempKey);
                 }
                 // Update variable for next loop
@@ -218,7 +233,7 @@ public class DataBaseOmgaudioToolBox {
         //Fill in elements in 11-Class 1 & 31-Class 1
         for( int i = 0; i < albumsSorted.size(); i++ ) {
             WriteGPLBelement(rafTable11, i+1, (Integer)GPLBelements.get(i));
-            WriteGPFBelement(rafTable31, (Integer)titleKeysSorted.get(i), (String)albumsSorted.get(i), (String)artistsSorted.get(i), (String)genresSorted.get(i));
+            WriteGPFBelement(rafTable31, (Integer)titleKeysSorted.get(i), (String)albumNamesSorted.get(i), (String)artistsSorted.get(i), (String)genresSorted.get(i));
         }
 
         WriteZeros(rafTable11, 0x4010 - 0x10 - (0x8*numberOfAlbums)); // Fill in the class with zeros
@@ -252,8 +267,8 @@ public class DataBaseOmgaudioToolBox {
      * @author nicolas_cardoso
      */
     public static void write01TREE02and03GINF02(File omgaudioDir, Map titles) throws Exception{
-        File table12 = new File(omgaudioDir + "/01tree02.dat");
-        File table32 = new File(omgaudioDir + "/03ginf02.dat");
+        File table12 = new File(omgaudioDir + "/01TREE02.DAT");
+        File table32 = new File(omgaudioDir + "/03GINF02.DAT");
         RandomAccessFile rafTable12;
         RandomAccessFile rafTable32;
         
@@ -296,7 +311,7 @@ public class DataBaseOmgaudioToolBox {
                 // Store the ID of the artist corresponding to its first title
                 GPLBelements.add(i+1);
                 // Sort the key of the last album, if any
-                if(artistsSorted.size() > 0){
+                if(artistsSorted.size() > 1){
                     titleKeysSorted.add(tempKey);
                 }
                 // Update variable for next loop
@@ -359,8 +374,8 @@ public class DataBaseOmgaudioToolBox {
      * @author nicolas_cardoso
      */
     public static void write01TREE03and03GINF03(File omgaudioDir, Map titles) throws Exception{
-        File table13 = new File(omgaudioDir + "/01tree03.dat");
-        File table33 = new File(omgaudioDir + "/03ginf03.dat");
+        File table13 = new File(omgaudioDir + "/01TREE03.DAT");
+        File table33 = new File(omgaudioDir + "/03GINF03.DAT");
         RandomAccessFile rafTable13;
         RandomAccessFile rafTable33;
         
@@ -404,7 +419,7 @@ public class DataBaseOmgaudioToolBox {
                 // Store the ID of the artist corresponding to its first title
                 GPLBelements.add(i+1);
                 // Sort the key of the last album, if any
-                if(albumsSorted.size() > 0){
+                if(albumsSorted.size() > 1){
                     titleKeysSorted.add(tempKey);
                 }
                 // Update variable for next loop
@@ -436,7 +451,7 @@ public class DataBaseOmgaudioToolBox {
         //Fill in elements in 13-Class 1 & 33-Class 1
         for( int i = 0; i < albumsSorted.size(); i++ ) {
             WriteGPLBelement(rafTable13, i+1, (Integer)GPLBelements.get(i));
-            WriteGPFBelement(rafTable33, 0, (String)albumsSorted.get(i));
+            WriteGPFBelement(rafTable33, (Integer)titleKeysSorted.get(i), (String)albumsSorted.get(i));
         }
         WriteZeros(rafTable13, 0x4010 - 0x10 - (0x8 * albumsSorted.size())); // Fill in the class with zeros
 
@@ -466,8 +481,8 @@ public class DataBaseOmgaudioToolBox {
      * @author nicolas_cardoso
      */
     public static void write01TREE04and03GINF04(File omgaudioDir, Map titles) throws Exception{
-        File table14 = new File(omgaudioDir + "/01tree04.dat");
-        File table34 = new File(omgaudioDir + "/03ginf04.dat");
+        File table14 = new File(omgaudioDir + "/01TREE04.DAT");
+        File table34 = new File(omgaudioDir + "/03GINF04.DAT");
         RandomAccessFile rafTable14;
         RandomAccessFile rafTable34;
         
@@ -510,7 +525,7 @@ public class DataBaseOmgaudioToolBox {
                 // Store the ID of the artist corresponding to its first title
                 GPLBelements.add(i+1);
                 // Sort the key of the last album, if any
-                if(genresSorted.size() > 0){
+                if(genresSorted.size() > 1){
                     titleKeysSorted.add(tempKey);
                 }
                 // Update variable for next loop
@@ -542,7 +557,7 @@ public class DataBaseOmgaudioToolBox {
         //Fill in elements in 14-Class 1 & 34-Class 1
         for( int i = 0; i < genresSorted.size(); i++ ) {
             WriteGPLBelement(rafTable14, i+1, (Integer)GPLBelements.get(i));
-            WriteGPFBelement(rafTable34, i+1, (String)genresSorted.get(i));
+            WriteGPFBelement(rafTable34, (Integer)titleKeysSorted.get(i), (String)genresSorted.get(i));
         }
         WriteZeros(rafTable14, 0x4010 - 0x10 - (0x8 * genresSorted.size())); // Fill in the class with zeros
 
@@ -569,8 +584,8 @@ public class DataBaseOmgaudioToolBox {
      * @author nicolas_cardoso
      */
     public static void write01TREE22and03GINF22(File omgaudioDir) throws Exception{
-        File table122 = new File(omgaudioDir + "/01tree22.dat");
-        File table322 = new File(omgaudioDir + "/03ginf22.dat");
+        File table122 = new File(omgaudioDir + "/01TREE22.DAT");
+        File table322 = new File(omgaudioDir + "/03GINF22.DAT");
         RandomAccessFile rafTable122;
         RandomAccessFile rafTable322;
         
@@ -619,8 +634,8 @@ public class DataBaseOmgaudioToolBox {
      * @author nicolas_cardoso
      */
     public static void write01TREE2Dand03GINF2D(File omgaudioDir, Map titles) throws Exception{
-        File table12D = new File(omgaudioDir + "/01tree2D.dat");
-        File table32D = new File(omgaudioDir + "/03ginf2D.dat");
+        File table12D = new File(omgaudioDir + "/01TREE2D.DAT");
+        File table32D = new File(omgaudioDir + "/03GINF2D.DAT");
         RandomAccessFile rafTable12D;
         RandomAccessFile rafTable32D;
         
@@ -674,7 +689,6 @@ public class DataBaseOmgaudioToolBox {
                     // Update variable for next loop
                     lastArtistName = artistName;
                     albumCounter = 0;
-                    tempKey = tempTitle.getLength();
                 }
 
                 // Store the new album
@@ -682,7 +696,7 @@ public class DataBaseOmgaudioToolBox {
                 // Store the ID of the artist corresponding to its first title
                 GPLBelements.add(i+1);
                 // Sort the key of the last album, if any
-                if(albumsSorted.size() > 0){
+                if(albumsSorted.size() > 1){
                     titleKeysSorted.add(tempKey);
                 }
                 // Update variable for next loop
@@ -760,7 +774,7 @@ public class DataBaseOmgaudioToolBox {
      * @author nicolas_cardoso
      */
     public static void write02TREINF(File omgaudioDir, Map titles) throws Exception{
-        File table2 = new File(omgaudioDir + "/02treinf.dat");
+        File table2 = new File(omgaudioDir + "/02TREINF.DAT");
         RandomAccessFile rafTable2;
         
         //Create new file
@@ -822,7 +836,7 @@ public class DataBaseOmgaudioToolBox {
      * @author nicolas_cardoso
      */
     public static void write04CNTINF(File omgaudioDir, JSymphonicMap titles, boolean gotKey) throws Exception{
-        File table4 = new File(omgaudioDir + "/04cntinf.dat");
+        File table4 = new File(omgaudioDir + "/04CNTINF.DAT");
         RandomAccessFile rafTable4;
         
         //Create new file
@@ -859,7 +873,7 @@ public class DataBaseOmgaudioToolBox {
      * @author nicolas_cardoso
      */
     public static void write04PATLST(File omgaudioDir, JSymphonicMap paths) throws Exception{
-        File table4 = new File(omgaudioDir + "/04patlst.dat");
+        File table4 = new File(omgaudioDir + "/04PATLST.DAT");
         RandomAccessFile rafTable4;
 
         //Create new file
@@ -870,8 +884,8 @@ public class DataBaseOmgaudioToolBox {
 
         // Header
         WriteTableHeader(rafTable4, "PALT", 1); //Write table header
-        WriteClassDescription(rafTable4, "PATH", 0x20, (paths.isEmpty() ? 0 : paths.maxKey())*0x290 + 0x10); //Write first class description
-        WriteClassHeader(rafTable4, "PATH", (paths.isEmpty() ? 0 : paths.maxKey()), 0x290); //Write first class header
+        WriteClassDescription(rafTable4, "PATH", 0x20, (paths.isEmpty() ? 0 : paths.maxKey())*0x150 + 0x10); //Write first class description
+        WriteClassHeader(rafTable4, "PATH", (paths.isEmpty() ? 0 : paths.maxKey()), 0x150); //Write first class header
 
         // Write elements
         String pathTemp;
@@ -894,7 +908,20 @@ public class DataBaseOmgaudioToolBox {
      * @author nicolas_cardoso
      */
     public static void write05CIDLST(File omgaudioDir, JSymphonicMap titles) throws Exception{
-        File table5 = new File(omgaudioDir + "/05cidlst.dat");
+        write05CIDLST(omgaudioDir, titles, false);
+    }
+
+    /**
+     * Write 05CIDLST file in OMGAUDIO folder. This method should be used while writing the database for generation using a OMGAUDIO folder.
+     *
+     *@param omgaudioDir Instance of the OMGAUDIO folder where to write the file.
+     *@param titles
+     *@param writeContentIds True to write the content ID of the OMA files transfered by SonicStage, false to write zeros for these files.
+     *
+     *@throws Exception
+     */
+    public static void write05CIDLST(File omgaudioDir, JSymphonicMap titles, boolean writeContentIds) throws Exception{
+        File table5 = new File(omgaudioDir + "/05CIDLST.DAT");
         RandomAccessFile rafTable5;
         
         //Create new file
@@ -913,10 +940,11 @@ public class DataBaseOmgaudioToolBox {
 
         // Write elements
         Title titleTemp;
-        Boolean hasLSIdrm = false;
+        Boolean hasLSIdrm;
 
         for( int i = 1; i <= titles.maxValue(); i++ ) { //05CIDLST must contains an element per title_ID even if no title actually correspond to some of the IDs !! That's the reason why I'm not using an iterator to look into the list
             titleTemp = (Title)titles.getKey(i);
+            hasLSIdrm = false;
 
             if( titleTemp != null ) {
                 if(titleTemp instanceof Oma) {
@@ -924,6 +952,12 @@ public class DataBaseOmgaudioToolBox {
                     if(oma.getDrm() == Oma.DRM_LSI){
                         hasLSIdrm = true;
                         rafTable5.write(oma.getDrmKey());
+                    }
+                    else if(writeContentIds && !isZero(oma.getContentId())){
+                        // Keep the content ID written by SonicStage
+                        hasLSIdrm = true;
+                        rafTable5.write(oma.getContentId());
+                        WriteZeros(rafTable5, 0x30 - oma.getContentId().length);
                     }
                 }
             }
@@ -1098,7 +1132,50 @@ public class DataBaseOmgaudioToolBox {
 
         out.write(string.getBytes("UTF-16"), 2, string.getBytes("UTF-16").length - 2);
     }
-    
+
+    /**
+     * Write an EA3 tag of 0x80 bytes (for instance "TIT2") in a random access file: the name of the tag, the encoding and the value in "UTF-16".
+     * The value is truncated if it doesn't fit in the tag.
+     * This class throws exceptions.
+     *
+     *@param raf Random access file instance of the file to write the tag to.
+     *@param tagName the name of the tag (4 characters).
+     *@param value the value of the tag.
+     */
+    public static void WriteTag(RandomAccessFile raf, String tagName, String value) throws java.io.IOException {
+        WriteTag(raf, tagName, value, 0x80);
+    }
+
+    /**
+     * Write an EA3 tag of a given length in a random access file: the name of the tag, the encoding and the value in "UTF-16".
+     * The value is truncated if it doesn't fit in the tag.
+     * This class throws exceptions.
+     *
+     *@param raf Random access file instance of the file to write the tag to.
+     *@param tagName the name of the tag (4 characters).
+     *@param value the value of the tag.
+     *@param tagLength the length of the tag, including its name.
+     */
+    public static void WriteTag(RandomAccessFile raf, String tagName, String value, int tagLength) throws java.io.IOException {
+        byte[] encoding = {0,2};
+        int maxChars = (tagLength - 4 - 2) / 2;
+
+        if(value == null){
+            value = "";
+        }
+        if(value.length() > maxChars){
+            value = value.substring(0, maxChars);
+            if(Character.isHighSurrogate(value.charAt(maxChars - 1))){
+                value = value.substring(0, maxChars - 1); // Don't cut a character in half
+            }
+        }
+
+        raf.write(tagName.getBytes());
+        raf.write(encoding);
+        WriteString16(raf, value);
+        WriteZeros(raf, tagLength - 4 - 2 - (value.length()*2));
+    }
+
     /**
      * Write a given number of zeros in a FileOutputStream.
      * This class throws exceptions.
@@ -1285,22 +1362,13 @@ public class DataBaseOmgaudioToolBox {
         raf.write(constant1);
         
         //Fist sub-element
-        raf.write(tag1.getBytes());
-        raf.write(constant2);
-        WriteString16(raf, albumName);
-        WriteZeros(raf, 0x80 - 4 - 2 - (albumName.length()*2) );
+        WriteTag(raf, tag1, albumName);
 
         //Second sub-element
-        raf.write(tag2.getBytes());
-        raf.write(constant2);
-        WriteString16(raf, artistName);
-        WriteZeros(raf, 0x80 - 4 - 2 - (artistName.length()*2) );
+        WriteTag(raf, tag2, artistName);
         
         //Third sub-element
-        raf.write(tag3.getBytes());
-        raf.write(constant2);
-        WriteString16(raf, genre);
-        WriteZeros(raf, 0x80 - 4 - 2 - (genre.length()*2) );
+        WriteTag(raf, tag3, genre);
         
         //Fourth sub-element
         raf.write(tag4.getBytes());
@@ -1331,7 +1399,6 @@ public class DataBaseOmgaudioToolBox {
      */
     public static void WriteGPFBelement(RandomAccessFile raf, int albumKey, String artistName) throws java.io.IOException {
         byte[] constant1 = {0,1,0,-128}; //-128 as a signed byte equals 128 as an unsigned byte equal 0x80 in hex
-        byte[] constant2 = {0,2};
         String tag1 = "TIT2";
         
         //Element header
@@ -1340,10 +1407,7 @@ public class DataBaseOmgaudioToolBox {
         raf.write(constant1);
         
         //Fist sub-element
-        raf.write(tag1.getBytes());
-        raf.write(constant2);
-        WriteString16(raf, artistName);
-        WriteZeros(raf, 0x80 - 4 - 2 - (artistName.length()*2) );
+        WriteTag(raf, tag1, artistName);
     }
     
     
@@ -1359,7 +1423,6 @@ public class DataBaseOmgaudioToolBox {
      */
     public static void WriteGPFBelement(RandomAccessFile raf, int albumKey, String elementName1, String elementName2) throws java.io.IOException {
         byte[] constant1 = {0,2,0,-128}; //-128 as a signed byte equals 128 as an unsigned byte equal 0x80 in hex
-        byte[] constant2 = {0,2};
         String tag1 = "TIT2";
         String tag2 = "XSOT";
         
@@ -1369,16 +1432,10 @@ public class DataBaseOmgaudioToolBox {
         raf.write(constant1);
         
         //Fist sub-element
-        raf.write(tag1.getBytes());
-        raf.write(constant2);
-        WriteString16(raf, elementName1);
-        WriteZeros(raf, 0x80 - 4 - 2 - (elementName1.length()*2) );
+        WriteTag(raf, tag1, elementName1);
         
         //Second sub-element
-        raf.write(tag2.getBytes());
-        raf.write(constant2);
-        WriteString16(raf, elementName2);
-        WriteZeros(raf, 0x80 - 4 - 2 - (elementName2.length()*2) );
+        WriteTag(raf, tag2, elementName2);
     }
     
     
@@ -1394,17 +1451,12 @@ public class DataBaseOmgaudioToolBox {
      */
     public static void WriteGTFBelement(RandomAccessFile raf, int key, String unknown) throws java.io.IOException {
         byte[] constant1 = {0,1,0,-128}; //-128 as a signed byte equals 128 as an unsigned byte equal 0x80 in hex
-        byte[] constant2 = {0,2};
         String tag = "TIT2";
         
         WriteZeros(raf, 8);
         raf.write(int2bytes(key, 4));
         raf.write(constant1);
-        raf.write(tag.getBytes());
-        raf.write(constant2);
-        WriteString16(raf, unknown);
-        
-        WriteZeros(raf, 0x80 - 4 - 2 - (unknown.length()*2) );
+        WriteTag(raf, tag, unknown);
     }
     
     
@@ -1472,28 +1524,16 @@ public class DataBaseOmgaudioToolBox {
         raf.write(constant1);
         
         //Fist sub-element
-        raf.write(tag1.getBytes());
-        raf.write(constant2);
-        WriteString16(raf, title.getTitle());
-        WriteZeros(raf, 0x80 - 4 - 2 - (title.getTitle().length()*2) );
+        WriteTag(raf, tag1, title.getTitle());
         
         //Second sub-element
-        raf.write(tag2.getBytes());
-        raf.write(constant2);
-        WriteString16(raf, title.getArtist());
-        WriteZeros(raf, 0x80 - 4 - 2 - (title.getArtist().length()*2) );
+        WriteTag(raf, tag2, title.getArtist());
 
         //Third sub-element
-        raf.write(tag3.getBytes());
-        raf.write(constant2);
-        WriteString16(raf, title.getAlbum());
-        WriteZeros(raf, 0x80 - 4 - 2 - (title.getAlbum().length()*2) );
+        WriteTag(raf, tag3, title.getAlbum());
         
         //Fourth sub-element
-        raf.write(tag4.getBytes());
-        raf.write(constant2);
-        WriteString16(raf, title.getGenre());
-        WriteZeros(raf, 0x80 - 4 - 2 - (title.getGenre().length()*2) );
+        WriteTag(raf, tag4, title.getGenre());
         
         //Fifth sub-element
         raf.write(tag5.getBytes());
@@ -1512,17 +1552,13 @@ public class DataBaseOmgaudioToolBox {
      * @author nicolas_cardoso
      */
     public static void WritePATHelement(RandomAccessFile raf, String path) throws java.io.IOException {
-        byte[] constant = {0,2};
         String tag1 = "TIT2";
 
         // Check path
         if(path == null){
             path = new String("");
         }
-        raf.write(tag1.getBytes());
-        raf.write(constant);
-        WriteString16(raf, path);
-        WriteZeros(raf, 0x150 - 4 - 2 - (path.length()*2) );
+        WriteTag(raf, tag1, path, 0x150);
     }
 
     /**
@@ -1615,11 +1651,10 @@ public class DataBaseOmgaudioToolBox {
      */    
     public static byte[] int2bytes(int integer, int bytesLength){
         int numberOfDigit;
-        Integer digit;
         byte[] bytesToReturn;
         
         // Search the number of digit in the integer
-        if(integer < 0) {integer+= 256;} // Convert it to a positive number if it is not
+        if(integer < 0 && integer >= -256) {integer+= 256;} // Convert a signed byte to a positive number. Other negative numbers are written in two's complement (for instance 0xd0000000)
         numberOfDigit = (int)((Integer.toBinaryString(integer).length() / 8.0 ) + 0.99); // 0.99 is added to round up the number (can't add 1 beacause in some case, the right number is found, so added 1 make it false althought it's not)
 
         // Create the array of bytes
@@ -1632,9 +1667,8 @@ public class DataBaseOmgaudioToolBox {
         
         // Fill in the integer in the array
         for( int i = bytesLength - 1; i >= bytesLength - numberOfDigit; i-- ) {
-            digit = integer % 256;
-            integer = integer / 256;
-            bytesToReturn[i] = digit.byteValue();
+            bytesToReturn[i] = (byte)(integer & 0xFF);
+            integer = integer >>> 8;
         }
 
         // Fill in the rest of the array with zeros

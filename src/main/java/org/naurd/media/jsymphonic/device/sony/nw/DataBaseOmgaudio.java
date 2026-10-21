@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import org.naurd.media.jsymphonic.title.Title;
+import org.naurd.media.jsymphonic.toolBox.DataBaseOmgaudioExtendedToolBox;
 import org.naurd.media.jsymphonic.toolBox.DataBaseOmgaudioToolBox;
 
 /**
@@ -62,7 +63,8 @@ public class DataBaseOmgaudio extends DataBase{
     private boolean gotIntelligentFeatures; // True if device has intelligent features
     private boolean gotCovers; // True if device can display covers
     private boolean gotSportFeatures; // True if device has sport features
- 
+    private boolean extendedDatabase; // True if device uses the extended database layout (NW-A80x, NW-A91x)
+
     //Other
     private static Logger logger = Logger.getLogger("org.naurd.media.jsymphonic.system.sony.nw.OmaDataBaseGen3");
       
@@ -77,8 +79,19 @@ public class DataBaseOmgaudio extends DataBase{
      * @author nicolas_cardoso
      */
     public DataBaseOmgaudio(java.io.File omgaudioDir, boolean gotPlaylist, boolean gotIntelligentFeatures, boolean gotCovers, boolean gotSportsFeatures, boolean gotKey) {
+        this(omgaudioDir, gotPlaylist, gotIntelligentFeatures, gotCovers, gotSportsFeatures, gotKey, false);
+    }
+
+    /**
+     * Allows to create an instance of DataBaseOmgaudio from an existing device.
+     *
+     *@param omgaudioDir The directory OMGAUDIO from the device.
+     *@param extendedDatabase True if the device uses the extended database layout (NW-A80x, NW-A91x).
+     */
+    public DataBaseOmgaudio(java.io.File omgaudioDir, boolean gotPlaylist, boolean gotIntelligentFeatures, boolean gotCovers, boolean gotSportsFeatures, boolean gotKey, boolean extendedDatabase) {
         // Call the super contructor
         super();
+        this.extendedDatabase = extendedDatabase;
         
         // Save the base directory
         this.omgaudioDir = omgaudioDir;
@@ -186,13 +199,13 @@ System.out.println(titleToUpdate);
             }
         }
         
-        // Erase all files in the OMGAUDIO folders (which are database files, and the database is going to be re-written) exepct the key file DvID.DAT, ffmpeg and the backup of the db
+        // Erase all files in the OMGAUDIO folders (which are database files, and the database is going to be re-written) exepct the key file DvID.DAT, ffmpeg, the files belonging to the device and the backup of the db
         String[] databaseFiles = omgaudioDir.list(); // Search all the files in the database
         boolean error = false;
         for(int i=0; i<databaseFiles.length; i++) {
             String databaseFileName = databaseFiles[i];
-            // If the file is not the key files or the FFMPEG exe, delete it (file starting with "." are ignore)
-            if((databaseFileName.toLowerCase().compareTo("dvid.dat") == 0) || (databaseFileName.toLowerCase().compareTo("ffmpeg.exe") == 0) || (databaseFileName.toLowerCase().compareTo("pthreadGC2.dll") == 0) || (databaseFileName.toLowerCase().compareTo("ffmpeg-win32.zip") ==0 ) || (databaseFileName.toLowerCase().compareTo("ffmpeg-win32") == 0) || (databaseFileName.toLowerCase().compareTo("30grct") == 0) || (databaseFileName.toLowerCase().compareTo("0001001d.dat") == 0) || (databaseFileName.toLowerCase().compareTo("00010021.dat") == 0) || (databaseFileName.toLowerCase().contains("srcidlst"))  || (databaseFileName.compareTo("db_backup") == 0)  || (databaseFileName.toLowerCase().contains("10f")) || (databaseFileName.toLowerCase().contains("jsymphonic")) || (databaseFileName.toLowerCase().startsWith(".")) ){
+            // If the file is not the key files, a device file or the FFMPEG exe, delete it (file starting with "." are ignore)
+            if(DataBaseOmgaudioExtendedToolBox.isDeviceFile(databaseFileName) || (databaseFileName.toLowerCase().compareTo("dvid.dat") == 0) || (databaseFileName.toLowerCase().compareTo("ffmpeg.exe") == 0) || (databaseFileName.toLowerCase().compareTo("pthreadGC2.dll") == 0) || (databaseFileName.toLowerCase().compareTo("ffmpeg-win32.zip") ==0 ) || (databaseFileName.toLowerCase().compareTo("ffmpeg-win32") == 0) || (databaseFileName.toLowerCase().compareTo("30grct") == 0) || (databaseFileName.toLowerCase().compareTo("0001001d.dat") == 0) || (databaseFileName.toLowerCase().compareTo("00010021.dat") == 0) || (databaseFileName.toLowerCase().contains("srcidlst"))  || (databaseFileName.compareTo("db_backup") == 0)  || (databaseFileName.toLowerCase().contains("10f")) || (databaseFileName.toLowerCase().contains("jsymphonic")) || (databaseFileName.toLowerCase().startsWith(".")) ){
                 continue;
             }
 
@@ -258,7 +271,12 @@ System.out.println(titleToUpdate);
 
         // Write 00GRTLST file (info about the database)
         try {
-            DataBaseOmgaudioToolBox.write00GRTLST(omgaudioDir);
+            if(extendedDatabase){
+                DataBaseOmgaudioExtendedToolBox.write00GTRLST(omgaudioDir);
+            }
+            else {
+                DataBaseOmgaudioToolBox.write00GRTLST(omgaudioDir);
+            }
         } catch (Exception ex) {
             logger.severe("ERROR: while writting 00GRTLST file: " + ex.getMessage());
             errorMessage =  "00GRTLST" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
@@ -270,7 +288,7 @@ System.out.println(titleToUpdate);
 
         // Write 01TREE01 and 03GINF01 files (info about the titles)
         try {
-            DataBaseOmgaudioToolBox.write01TREE01and03GINF01(omgaudioDir, titles);
+            DataBaseOmgaudioToolBox.write01TREE01and03GINF01(omgaudioDir, titles, !extendedDatabase);
         } catch (Exception ex) {
             logger.severe("ERROR: while writting 01TREE01 and 03GINF01 files: " + ex.getMessage());
             errorMessage +=  "01TREE01" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
@@ -344,13 +362,33 @@ System.out.println(titleToUpdate);
         genNw.sendFileChanged(NWGenericListener.UPDATING, "03GINF22");
         genNw.sendFileProgressChanged(NWGenericListener.UPDATING, 100, 0);
 
-        // Write 01TREE2D and 03GINF2D files
-        try {
-            DataBaseOmgaudioToolBox.write01TREE2Dand03GINF2D(omgaudioDir, titles);
-        } catch (Exception ex) {
-            logger.severe("ERROR: while writting 01TREE2D and 03GINF2D files: " + ex.getMessage());
-            errorMessage +=  "01TREE2D" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
-            errorMessage +=  "03GINF2D" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+        if(extendedDatabase){
+            // Write the trees 2D (history), 10 to 15 (bookmarks) and 2E to 36 (top 100, ratings, genre/year/initial browsing, recent transfers, artist/album with thumbnails)
+            try {
+                DataBaseOmgaudioExtendedToolBox.writeExtendedTrees(omgaudioDir, titles);
+            } catch (Exception ex) {
+                logger.severe("ERROR: while writting extended tree files: " + ex.getMessage());
+                errorMessage +=  "01TREExx" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+                errorMessage +=  "03GINFxx" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+            }
+
+            // Create the files the device expects, if they are missing
+            try {
+                DataBaseOmgaudioExtendedToolBox.createDeviceFiles(omgaudioDir);
+            } catch (Exception ex) {
+                logger.severe("ERROR: while creating device files: " + ex.getMessage());
+                errorMessage +=  "ACTIVITY/MACLIST0/RESERVED" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+            }
+        }
+        else {
+            // Write 01TREE2D and 03GINF2D files
+            try {
+                DataBaseOmgaudioToolBox.write01TREE2Dand03GINF2D(omgaudioDir, titles);
+            } catch (Exception ex) {
+                logger.severe("ERROR: while writting 01TREE2D and 03GINF2D files: " + ex.getMessage());
+                errorMessage +=  "01TREE2D" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+                errorMessage +=  "03GINF2D" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+            }
         }
 
         // Update progress bar in GUI
@@ -361,7 +399,12 @@ System.out.println(titleToUpdate);
 
         // Write 02TREINF file (list of the keys)
         try {
-            DataBaseOmgaudioToolBox.write02TREINF(omgaudioDir, titles);
+            if(extendedDatabase){
+                DataBaseOmgaudioExtendedToolBox.write02TREINF(omgaudioDir, titles);
+            }
+            else {
+                DataBaseOmgaudioToolBox.write02TREINF(omgaudioDir, titles);
+            }
         } catch (Exception ex) {
             logger.severe("ERROR: while writting 02TREINF file: " + ex.getMessage());
             errorMessage +=  "02TREINF" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
@@ -400,7 +443,7 @@ System.out.println(titleToUpdate);
 
         // Write 05CIDLST file
         try {
-            DataBaseOmgaudioToolBox.write05CIDLST(omgaudioDir, titles);
+            DataBaseOmgaudioToolBox.write05CIDLST(omgaudioDir, titles, extendedDatabase);
         } catch (Exception ex) {
             logger.severe("ERROR: while writting 05CIDLST file: " + ex.getMessage());
             errorMessage +=  "05CIDLST" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";

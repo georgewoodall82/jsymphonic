@@ -107,6 +107,10 @@ public class NWOmgaudio extends NWGeneric{
                     this.gotkey = false;
                     dataBase = new DataBaseOmgaudio(source, true, true, true, false, gotkey); // Got playlist, got intelligent features, got covers
                     break;
+                case GENERATION_7_EXTENDED:
+                    this.gotkey = false;
+                    dataBase = new DataBaseOmgaudio(source, true, true, true, false, gotkey, true); // Got playlist, got intelligent features, got covers, extended database
+                    break;
                 case GENERATION_VAIO:
                     this.gotkey = true;
                     dataBase = new DataBaseOmgaudio(source, true, false, true, false, gotkey); // Got playlist, got covers

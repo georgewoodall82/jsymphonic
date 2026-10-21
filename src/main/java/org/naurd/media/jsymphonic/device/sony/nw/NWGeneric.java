@@ -97,6 +97,7 @@ public abstract class NWGeneric implements org.naurd.media.jsymphonic.device.Dev
     public static final int GENERATION_6 = 6;
     public static final int GENERATION_7 = 7;
     public static final int GENERATION_VAIO = 8;
+    public static final int GENERATION_7_EXTENDED = 9; // Generation 7 with the extended database (NW-A80x, NW-A91x)
     protected static Map generationMap = new HashMap(); // used to store the different generation names
     
     // Shared variables for the encode, decode, transfer thread are stored in monitors
@@ -1541,6 +1542,7 @@ public abstract class NWGeneric implements org.naurd.media.jsymphonic.device.Dev
         generationMap.put(GENERATION_5, java.util.ResourceBundle.getBundle("localization/jsymphonicprofilesdialog").getString("JSymphonicProfilesDialog.generation5"));
         generationMap.put(GENERATION_6, java.util.ResourceBundle.getBundle("localization/jsymphonicprofilesdialog").getString("JSymphonicProfilesDialog.generation6"));
         generationMap.put(GENERATION_7, java.util.ResourceBundle.getBundle("localization/jsymphonicprofilesdialog").getString("JSymphonicProfilesDialog.generation7"));
+        generationMap.put(GENERATION_7_EXTENDED, java.util.ResourceBundle.getBundle("localization/jsymphonicprofilesdialog").getString("JSymphonicProfilesDialog.generation7Extended"));
         generationMap.put(GENERATION_VAIO, java.util.ResourceBundle.getBundle("localization/jsymphonicprofilesdialog").getString("JSymphonicProfilesDialog.generationVaio"));
     }
 
