@@ -355,7 +355,9 @@ public class DataBaseOmgaudioExtendedToolBox {
                 return true;
             }
         }
-        return fileName.equalsIgnoreCase("A_WM"); // Files transfered with Windows Media Player
+        return fileName.equalsIgnoreCase("A_WM") // Files transfered with Windows Media Player
+                || fileName.equalsIgnoreCase("07GTCHLG.DAT") // Tree change log written by SonicStage
+                || fileName.matches("(?i)20P[0-9A-F]{2}"); // Album art pictures written by SonicStage
     }
 
     /**

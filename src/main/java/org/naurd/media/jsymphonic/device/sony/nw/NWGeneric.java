@@ -1141,6 +1141,10 @@ public abstract class NWGeneric implements org.naurd.media.jsymphonic.device.Dev
             // Display en error
             logger.warning("ERROR: ffmpeg can't be found, titles that need to be transcoded can't be transfered, please check you installation of ffmpeg.");
 
+            // Count the titles which won't be encoded, to warn the user
+            titlesNotEncoded += titleVectorsMonitor.size(TitleVectorsMonitor.ENCODE_VECTOR);
+            noFfmpeg = titleVectorsMonitor.size(TitleVectorsMonitor.ENCODE_VECTOR);
+
             // Empty the list of title to encode
             titleVectorsMonitor.clear(TitleVectorsMonitor.ENCODE_VECTOR);
         }

@@ -213,7 +213,7 @@ public class Mp3 extends Title {
                 return true;
             }
             else{
-                if( ( title.getBitRate() == 48) || ( title.getBitRate() == 64) || ( title.getBitRate() == 96) || ( title.getBitRate() == 128) || ( title.getBitRate() == 160) || ( title.getBitRate() == 192) || ( title.getBitRate() == 256) || ( title.getBitRate() == 320) ){
+                if(isMpeg1Layer3Bitrate(title.getBitRate())){
                     return true;
                 }
                 else{
@@ -222,6 +222,22 @@ public class Mp3 extends Title {
                 }
             }
         }
+    }
+
+    /**
+     * Tell if a bitrate is one of the bitrates defined for MPEG-1 Layer III.
+     *
+     * @param bitrate The bitrate in kbps.
+     * @return True if the bitrate is a valid MPEG-1 Layer III bitrate, false otherwise.
+     */
+    private static boolean isMpeg1Layer3Bitrate(int bitrate){
+        int[] bitrates = {32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320};
+        for(int i = 0; i < bitrates.length; i++){
+            if(bitrate == bitrates[i]){
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
