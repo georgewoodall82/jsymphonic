@@ -23,6 +23,8 @@
 package org.naurd.media.jsymphonic.toolBox;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.naurd.media.jsymphonic.title.Title;
 
 import static org.naurd.media.jsymphonic.toolBox.DataBaseOmgaudioToolBox.*;
@@ -77,6 +80,12 @@ public class DataBaseOmgaudioExtendedToolBox {
         {"MACLIST0.DAT", 0x8000}, {"MACLIST0.BAK", 0x8000}, {"ACTIVITY.DAT", 0x280000}, {"RESERVED.DAT", 0x400000}
     };
 
+    // Album thumbnails of tree 36, as written by SonicStage: the big picture (PICP tag) then the small ones (PIC0 tag)
+    private static final int[] THUMBNAIL_SIZES = {200, 96, 32};
+    private static final String[] THUMBNAIL_SUFFIXES = {"P0", "01", "02"};
+
+    private static Logger logger = Logger.getLogger("org.naurd.media.jsymphonic.toolBox.DataBaseOmgaudioExtendedToolBox");
+
     /**
      * Gives the label of a title for one level of a tree (the artist name, the album name,...).
      */
@@ -109,6 +118,7 @@ public class DataBaseOmgaudioExtendedToolBox {
         int key; // Sum of the length of the titles directly in the group
         String[] tagValues; // Values of the tags in the 03GINFXX file
         int firstTitle; // Index (starting at 1) in the TPLB class of the first title of the group, 0 if the group holds no title directly
+        List<Title> titles; // Titles directly in the group, null if the group isn't in the last level
 
         Group(int level, int key, String[] tagValues, int firstTitle) {
             this.level = level;
@@ -312,7 +322,76 @@ public class DataBaseOmgaudioExtendedToolBox {
         groups.add(new Group(1, 0, new String[]{"", "", "", ""}, 0));
         Level[] levels = {new Level(ARTIST, ARTIST, true, null), new Level(ALBUM, ALBUM, true, null)};
         addGroups(groups, titleIds, sort(allTitles, levels), levels, 0, TAGS_TITLE_PICTURES_SORT, titles);
+        // Album thumbnails, from the cover of the titles
+        for (int i = 0; i < groups.size(); i++) {
+            Group group = groups.get(i);
+            if (group.titles != null) {
+                String[] pictures = writeAlbumThumbnails(omgaudioDir, i + 1, group.titles);
+                if (pictures != null) {
+                    group.tagValues[1] = pictures[0]; // PICP
+                    group.tagValues[2] = pictures[1]; // PIC0
+                }
+            }
+        }
         writeTree(omgaudioDir, "36", TAGS_TITLE_PICTURES_SORT, groups, titleIds);
+    }
+
+    /**
+     * Write the thumbnails of an album of tree 36 in a 20PXX folder, from the cover of its first title having one.
+     * As SonicStage does, the files are named after the ID of the group in 03GINF36: JMxxxxP0.JPG (200x200),
+     * JMxxxx01.JPG (96x96) and JMxxxx02.JPG (32x32).
+     *
+     * @param omgaudioDir Instance of the OMGAUDIO folder.
+     * @param groupId ID of the album group in 03GINF36.
+     * @param titles Titles of the album.
+     * @return The values of the PICP and PIC0 tags, or null if no thumbnail has been written.
+     */
+    private static String[] writeAlbumThumbnails(File omgaudioDir, int groupId, List<Title> titles) {
+        byte[] cover = null;
+        for (Title title : titles) {
+            cover = CoverArtToolBox.readCover(title.getCoverFile());
+            if (cover != null) {
+                break;
+            }
+        }
+        if (cover == null) {
+            return null;
+        }
+
+        String folderName = String.format("20P%02X", groupId % 0x20);
+        File folder = findFile(omgaudioDir, folderName);
+        if (!folder.exists() && !folder.mkdir()) {
+            logger.warning("Cannot create folder " + folder.getPath() + " for album thumbnails.");
+            return null;
+        }
+
+        String[] values = new String[THUMBNAIL_SIZES.length];
+        for (int i = 0; i < THUMBNAIL_SIZES.length; i++) {
+            int size = THUMBNAIL_SIZES[i];
+            byte[] jpeg = CoverArtToolBox.toSquareJpeg(cover, size);
+            if (jpeg == null) {
+                return null;
+            }
+            String fileName = String.format("JM%04X%s.JPG", groupId, THUMBNAIL_SUFFIXES[i]);
+            try {
+                FileOutputStream out = new FileOutputStream(findFile(folder, fileName));
+                try {
+                    out.write(jpeg);
+                } finally {
+                    out.close();
+                }
+            } catch (IOException ex) {
+                logger.warning("Cannot write album thumbnail " + fileName + ": " + ex.getMessage());
+                return null;
+            }
+            values[i] = String.format("%03d%03d;%s\\%s", size, size, folderName, fileName);
+        }
+
+        String smallPictures = values[1];
+        for (int i = 2; i < values.length; i++) {
+            smallPictures += "|" + values[i];
+        }
+        return new String[]{values[0], smallPictures};
     }
 
     /**
@@ -438,7 +517,9 @@ public class DataBaseOmgaudioExtendedToolBox {
 
             List<Title> titlesInGroup = groupTitles.get(i);
             if (isLastLevel) {
-                groups.add(new Group(depth + 1, totalLength(titlesInGroup), tagValues, titlesInGroup.isEmpty() ? 0 : titleIds.size() + 1));
+                Group group = new Group(depth + 1, totalLength(titlesInGroup), tagValues, titlesInGroup.isEmpty() ? 0 : titleIds.size() + 1);
+                group.titles = titlesInGroup;
+                groups.add(group);
                 addTitleIds(titleIds, titlesInGroup, titles);
             } else {
                 groups.add(new Group(depth + 1, 0, tagValues, 0));

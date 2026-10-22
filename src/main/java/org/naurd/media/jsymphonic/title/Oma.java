@@ -30,6 +30,7 @@ package org.naurd.media.jsymphonic.title;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import org.naurd.media.jsymphonic.toolBox.CoverArtToolBox;
 import org.naurd.media.jsymphonic.toolBox.DataBaseOmgaudioToolBox;
 
 
@@ -115,6 +116,7 @@ public class Oma  extends Title{
         status = title.getStatus();
         nbOfBytesBeforeMusic = title.getNbOfBytesBeforeMusic();
         nbChannels = title.getNbChannels();
+        coverFile = title.getCoverFile(); // The cover is read from the title when the tag is written
 
         if(title instanceof Mp3){
             // If wrapped title is an MP3, we should read the layer and the mpegVersion
@@ -1033,18 +1035,26 @@ public class Oma  extends Title{
         byte[] bytes4 = {(byte)0x65,(byte)0x61,(byte)0x33,(byte)0x03}; // "e","a","3",0x3
         stream.write(bytes4); headerlength += 4; // Write label
 
+        // Read the cover of the title, it is written in a GEOB frame as SonicStage does
+        byte[] coverFrame = new byte[0];
+        if(coverFile != null && !coverFile.equals(sourceFile)){
+            byte[] cover = CoverArtToolBox.readCover(coverFile);
+            if(cover != null){
+                byte[] jpeg = CoverArtToolBox.toSquareJpeg(cover, CoverArtToolBox.OMA_COVER_SIZE);
+                if(jpeg != null){
+                    coverFrame = CoverArtToolBox.buildOmaCoverFrame(jpeg);
+                }
+            }
+        }
+
         // Compute the size of the first part
         // If no cover is writen, SonicStage always uses a given lenght: 0xC00 bytes counted as follows: 0x17*0x80 + 0x80. Here, one byte is enough to code the lenght (0x17) but 5 bytes are reserved for that, see what follows.
         // When a cover is writen, if the cover is large (around 0x8000), the length of the tag may be coded over 2 bytes, as follows 0x0A*0x4000 + 0x0F*0x80 + 0x80 (the two bytes here are 0A 0F)
-//NOT IMPLEMENTED YET        if(!COVER){ TODO
-        partOneSizeA = (byte)0x0;
-        partOneSizeB = (byte)0x17;
-//NOT IMPLEMENTED YET        }
-//NOT IMPLEMENTED YET        else { // Compute and write the size of the first part of the tag
-//NOT IMPLEMENTED YET            partOneSizeA = 0x0;
-//NOT IMPLEMENTED YET            partOneSizeB = 0x0;
-//NOT IMPLEMENTED YET        }
-        byte[] bytes6 = {0,0,0,partOneSizeA,partOneSizeB,(byte)0x76}; // The size of the first part of the tag is "0x17", "0X76" is an unknown constant
+        // The room needed by the cover (rounded to 0x80) is added to the 0xC00 bytes, which are always enough for the text info
+        int partOneSize = 0xC00 + ((coverFrame.length + 0x7F) & ~0x7F);
+        partOneSizeA = (byte)((partOneSize/0x80 - 1) / 0x80);
+        partOneSizeB = (byte)((partOneSize/0x80 - 1) % 0x80);
+        byte[] bytes6 = {0,0,0,partOneSizeA,partOneSizeB,(byte)0x76}; // The size of the first part of the tag (0x17 without cover), "0X76" is an unknown constant
         stream.write(bytes6); headerlength += 6;
 
         //Title name
@@ -1131,8 +1141,11 @@ public class Oma  extends Title{
             DataBaseOmgaudioToolBox.WriteString16(stream, lengthString); headerlength += lengthString.length()*2; // Write the info
         }
 
+        // Cover (only writen if found)
+        stream.write(coverFrame); headerlength += coverFrame.length;
+
         //Fill in with zeros the first part of the tag (ea3) to reach the length we had writen at the beginning of the tag
-        DataBaseOmgaudioToolBox.WriteZeros(stream, partOneSizeA*0x4000 + partOneSizeB*0x80 + 0x80 - headerlength);
+        DataBaseOmgaudioToolBox.WriteZeros(stream, partOneSize - headerlength);
 
 
         //// Add second part of the tag (the one called "EA3" with title properties)

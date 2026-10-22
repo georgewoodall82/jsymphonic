@@ -1255,6 +1255,8 @@ public abstract class NWGeneric implements org.naurd.media.jsymphonic.device.Dev
                 else {
                     // Read the MP3 file info on the new created MP3 file
                     titleEncoded.readMP3Info();
+                    // The cover art is read from the original file, the temporary file may not have it
+                    titleEncoded.setCoverFile(titleToEncode.getCoverFile());
 
                     // Save the number of file encoded
                     titlesEncoded++;
