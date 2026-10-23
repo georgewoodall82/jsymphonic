@@ -29,6 +29,7 @@ import java.io.RandomAccessFile;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -83,6 +84,11 @@ public class DataBaseOmgaudioExtendedToolBox {
     // Album thumbnails of tree 36, as written by SonicStage: the big picture (PICP tag) then the small ones (PIC0 tag)
     private static final int[] THUMBNAIL_SIZES = {200, 96, 32};
     private static final String[] THUMBNAIL_SUFFIXES = {"P0", "01", "02"};
+
+    // Mount log, holding the modification time of 01TREE01.DAT and 04CNTINF.DAT
+    private static final String MOUNT_LOG = "AFMNTLOG.DAT";
+    private static final int MOUNT_LOG_SIZE = 0x10c0;
+    private static final int MOUNT_LOG_TIMES = 0x40; // Position of the two times in the DTBL class
 
     private static Logger logger = Logger.getLogger("org.naurd.media.jsymphonic.toolBox.DataBaseOmgaudioExtendedToolBox");
 
@@ -420,6 +426,105 @@ public class DataBaseOmgaudioExtendedToolBox {
             }
             raf.close();
         }
+    }
+
+    /**
+     * Write the modification time of 01TREE01.DAT and 04CNTINF.DAT in A_WM/AFMNTLOG.DAT, as SonicStage does.
+     *
+     * When it starts, the device compares these times with the ones of the files. If the log is missing or if they
+     * differ (because the database has been written by another program), it only enables its basic features and
+     * displays a "Simple Mode" message. The rest of the log (MLBL class) is written by the device, to remember which
+     * version of the database it has processed, and is kept as it is.
+     * The modification time of both files is set to the current time first, rounded to 2 seconds as stored by FAT
+     * file systems, so that the time read by the device is exactly the one written in the log.
+     *
+     * @param omgaudioDir Instance of the OMGAUDIO folder.
+     * @param create True to create the log if it doesn't exist, false to only update an existing log.
+     * @throws Exception
+     */
+    public static void writeMountLog(File omgaudioDir, boolean create) throws Exception {
+        File logFile = findFile(findFile(omgaudioDir, "A_WM"), MOUNT_LOG);
+        if (!logFile.exists() && !create) {
+            return;
+        }
+
+        File treeFile = findFile(omgaudioDir, "01TREE01.DAT");
+        File contentFile = findFile(omgaudioDir, "04CNTINF.DAT");
+        if (!treeFile.exists() || !contentFile.exists()) {
+            throw new IOException("01TREE01.DAT or 04CNTINF.DAT is missing");
+        }
+        long time = (System.currentTimeMillis() / 2000) * 2000;
+        treeFile.setLastModified(time);
+        contentFile.setLastModified(time);
+
+        // Use the times read back from the file system, in case it rounds them differently
+        byte[] times = new byte[16];
+        System.arraycopy(toBcdTime(treeFile.lastModified()), 0, times, 0, 8);
+        System.arraycopy(toBcdTime(contentFile.lastModified()), 0, times, 8, 8);
+
+        if (!isMountLog(logFile)) {
+            // Create an empty log
+            File folder = logFile.getParentFile();
+            if (!folder.exists() && !folder.mkdir()) {
+                throw new IOException("Cannot create folder " + folder.getPath());
+            }
+            RandomAccessFile raf = new RandomAccessFile(logFile, "rw");
+            try {
+                raf.setLength(0);
+                raf.write("AFML".getBytes());
+                raf.write(new byte[]{1, 0, 0, 0, 2, 0, 0, 0});
+                WriteZeros(raf, 4);
+                WriteClassDescription(raf, "DTBL", 0x30, 0x90);
+                WriteClassDescription(raf, "MLBL", 0xc0, 0x1000);
+                WriteClassHeader(raf, "DTBL", 1, 0x80);
+                WriteZeros(raf, 0x80);
+                WriteClassHeader(raf, "MLBL", 0xff, 0x10);
+                WriteZeros(raf, 0xff * 0x10);
+            } finally {
+                raf.close();
+            }
+        }
+
+        RandomAccessFile raf = new RandomAccessFile(logFile, "rw");
+        try {
+            raf.seek(MOUNT_LOG_TIMES);
+            raf.write(times);
+        } finally {
+            raf.close();
+        }
+    }
+
+    /**
+     * Tells if a file is a valid mount log.
+     */
+    private static boolean isMountLog(File file) throws IOException {
+        if (!file.exists() || file.length() != MOUNT_LOG_SIZE) {
+            return false;
+        }
+        byte[] header = new byte[0x34];
+        RandomAccessFile raf = new RandomAccessFile(file, "r");
+        try {
+            raf.readFully(header);
+        } finally {
+            raf.close();
+        }
+        return new String(header, 0, 4, "ISO-8859-1").equals("AFML") && new String(header, 0x30, 4, "ISO-8859-1").equals("DTBL");
+    }
+
+    /**
+     * Convert a time to the format used in the mount log: year (2 bytes), month, day, hour, minute, second in BCD, then a zero.
+     * The local time is used, as FAT file systems store local times.
+     */
+    static byte[] toBcdTime(long time) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(time);
+        int[] values = {calendar.get(Calendar.YEAR) / 100, calendar.get(Calendar.YEAR) % 100, calendar.get(Calendar.MONTH) + 1,
+                calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND)};
+        byte[] bcd = new byte[8];
+        for (int i = 0; i < values.length; i++) {
+            bcd[i] = (byte) (((values[i] / 10) << 4) | (values[i] % 10));
+        }
+        return bcd;
     }
 
     /**

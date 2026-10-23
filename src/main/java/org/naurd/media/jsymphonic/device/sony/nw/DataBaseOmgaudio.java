@@ -453,6 +453,15 @@ System.out.println(titleToUpdate);
         genNw.sendFileChanged(NWGenericListener.UPDATING, "05CIDLST");
         genNw.sendFileProgressChanged(NWGenericListener.UPDATING, 100, 0);
 
+
+        // Write the times of 01TREE01 and 04CNTINF in A_WM/AFMNTLOG, else the device displays "Simple Mode" (created for the extended database, updated if it exists for the others)
+        try {
+            DataBaseOmgaudioExtendedToolBox.writeMountLog(omgaudioDir, extendedDatabase);
+        } catch (Exception ex) {
+            logger.severe("ERROR: while writting AFMNTLOG file: " + ex.getMessage());
+            errorMessage +=  "AFMNTLOG" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+        }
+
         return errorMessage;
     }
 
