@@ -89,6 +89,7 @@ public class DataBaseOmgaudioExtendedToolBox {
     private static final String MOUNT_LOG = "AFMNTLOG.DAT";
     private static final int MOUNT_LOG_SIZE = 0x10c0;
     private static final int MOUNT_LOG_TIMES = 0x40; // Position of the two times in the DTBL class
+    private static final int MOUNT_LOG_BASIC_TREE = 0xd0; // Position of the first element of the MLBL class
 
     private static Logger logger = Logger.getLogger("org.naurd.media.jsymphonic.toolBox.DataBaseOmgaudioExtendedToolBox");
 
@@ -433,8 +434,9 @@ public class DataBaseOmgaudioExtendedToolBox {
      *
      * When it starts, the device compares these times with the ones of the files. If the log is missing or if they
      * differ (because the database has been written by another program), it only enables its basic features and
-     * displays a "Simple Mode" message. The rest of the log (MLBL class) is written by the device, to remember which
-     * version of the database it has processed, and is kept as it is.
+     * displays a "Simple Mode" message. It also checks that the first element of the MLBL class ("BasicTree") holds
+     * the time of 01TREE01.DAT, so it is written too. The other elements are written by SonicStage or the device, to
+     * remember which version of the database they have processed, and are kept as they are.
      * The modification time of both files is set to the current time first, rounded to 2 seconds as stored by FAT
      * file systems, so that the time read by the device is exactly the one written in the log.
      *
@@ -489,6 +491,11 @@ public class DataBaseOmgaudioExtendedToolBox {
         try {
             raf.seek(MOUNT_LOG_TIMES);
             raf.write(times);
+            // First element of the MLBL class ("BasicTree"): written by SonicStage with the time of 01TREE01.DAT, the device also checks it
+            raf.seek(MOUNT_LOG_BASIC_TREE);
+            raf.write(1);
+            WriteZeros(raf, 7);
+            raf.write(times, 0, 8);
         } finally {
             raf.close();
         }
