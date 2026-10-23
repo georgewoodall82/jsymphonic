@@ -19,10 +19,18 @@ package org.danizmax.jsymphonic.toolkit;
 
 import java.awt.Component;
 import java.awt.Dialog;
+import java.awt.EventQueue;
 import java.awt.FileDialog;
 import java.awt.Frame;
+import java.awt.SecondaryLoop;
+import java.awt.Toolkit;
 import java.awt.Window;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.JFileChooser;
@@ -33,9 +41,15 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.nfd.NativeFileDialog;
 
 /**
- * Lets the user pick a folder with the file dialog of the operating system. The native dialog is
- * used on Windows, Linux (needs GTK 3) and macOS. If it is not available, the Swing file chooser is
- * used instead.
+ * Lets the user pick a folder with the file dialog of the operating system:
+ * <ul>
+ * <li>Windows: the native dialog, through lwjgl-nfd.</li>
+ * <li>macOS: the native AWT file dialog, in folder mode.</li>
+ * <li>Linux: the dialog of the desktop, run as a separate program (kdialog or zenity). It must not
+ * be loaded in this process: the GTK of the dialog conflicts with the one of the GTK look and feel
+ * of Swing, and freezes the interface once the dialog is closed.</li>
+ * </ul>
+ * If the native dialog is not available, the Swing file chooser is used instead.
  */
 public final class NativeFolderChooser {
     private static final Logger logger = Logger.getLogger(NativeFolderChooser.class.getName());
@@ -54,12 +68,16 @@ public final class NativeFolderChooser {
     public static String chooseFolder(Component parent, String title, String startPath) {
         File start = (startPath != null && new File(startPath).isDirectory()) ? new File(startPath) : null;
 
+        String os = System.getProperty("os.name", "").toLowerCase();
         try {
-            if (System.getProperty("os.name", "").toLowerCase().contains("mac")) {
+            if (os.contains("mac")) {
                 // Native folder picking is built in the AWT file dialog of macOS
                 return chooseWithAwt(parent, title, start);
+            } else if (os.contains("win")) {
+                return chooseWithNfd(start);
+            } else {
+                return chooseWithDesktopDialog(title, start);
             }
-            return chooseWithNfd(start);
         } catch (Throwable t) {
             logger.warning("Native file dialog unavailable (" + t + "), using the Swing one");
         }
@@ -85,6 +103,83 @@ public final class NativeFolderChooser {
         } finally {
             NativeFileDialog.NFD_Quit();
         }
+    }
+
+    private static String chooseWithDesktopDialog(String title, File start) throws IOException, InterruptedException {
+        String startPath = (start != null ? start : new File(System.getProperty("user.home"))).getAbsolutePath();
+
+        List<String[]> commands = new ArrayList<String[]>();
+        String[] kdialog = {"kdialog", "--title", title, "--getexistingdirectory", startPath};
+        String[] zenity = {"zenity", "--file-selection", "--directory", "--title=" + title, "--filename=" + startPath + "/"};
+        if (System.getenv("XDG_CURRENT_DESKTOP") != null && System.getenv("XDG_CURRENT_DESKTOP").toUpperCase().contains("KDE")) {
+            commands.add(kdialog);
+            commands.add(zenity);
+        } else {
+            commands.add(zenity);
+            commands.add(kdialog);
+        }
+
+        IOException lastError = new IOException("No file dialog program found (kdialog, zenity)");
+        for (String[] command : commands) {
+            try {
+                return runDialogProcess(command);
+            } catch (IOException e) {
+                lastError = e; // Program not installed or not working, try the next one
+            }
+        }
+        throw lastError;
+    }
+
+    /**
+     * Run a dialog program and return what it prints. The user interface keeps being repainted while
+     * the dialog is open.
+     *
+     * @return The path chosen, or null if the user cancelled.
+     */
+    private static String runDialogProcess(String[] command) throws IOException, InterruptedException {
+        final Process process = new ProcessBuilder(command).redirectError(new File("/dev/null")).start();
+        final StringBuilder output = new StringBuilder();
+        final int[] exitCode = {-1};
+        final Exception[] failure = {null};
+        final SecondaryLoop loop = EventQueue.isDispatchThread()
+                ? Toolkit.getDefaultToolkit().getSystemEventQueue().createSecondaryLoop() : null;
+
+        Thread waiter = new Thread("folder-dialog") {
+            public void run() {
+                try {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line);
+                    }
+                    exitCode[0] = process.waitFor();
+                } catch (Exception e) {
+                    failure[0] = e;
+                } finally {
+                    if (loop != null) {
+                        loop.exit();
+                    }
+                }
+            }
+        };
+        waiter.setDaemon(true);
+        waiter.start();
+
+        if (loop != null) {
+            loop.enter(); // Keep processing the events of the interface while the dialog is open
+        }
+        waiter.join();
+
+        if (failure[0] != null) {
+            throw new IOException(failure[0]);
+        }
+        if (exitCode[0] == 0 && output.length() > 0) {
+            return output.toString().trim();
+        }
+        if (exitCode[0] == 1) {
+            return null; // Cancelled
+        }
+        throw new IOException(command[0] + " exited with code " + exitCode[0]);
     }
 
     private static String chooseWithAwt(Component parent, String title, File start) {
