@@ -24,7 +24,6 @@ import java.util.logging.Logger;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
 
 import net.samuelcampos.usbdrivedetector.USBDeviceDetectorManager;
@@ -146,18 +145,9 @@ public class DevicePathComboBox extends JComboBox<String> {
     }
 
     private void browse() {
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle(browseLabel);
-        fc.setDialogType(JFileChooser.OPEN_DIALOG);
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        File current = new File(lastPath);
-        if (current.isDirectory()) {
-            fc.setCurrentDirectory(current);
-        }
-
-        String chosen = lastPath;
-        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            chosen = fc.getSelectedFile().getAbsolutePath();
+        String chosen = NativeFolderChooser.chooseFolder(this, browseLabel, lastPath);
+        if (chosen == null) {
+            chosen = lastPath;
         }
 
         // Add the chosen path just before the browse entry if it is new, then select it.

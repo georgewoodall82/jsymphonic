@@ -33,10 +33,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import org.danizmax.jsymphonic.toolkit.DevicePathComboBox;
+import org.danizmax.jsymphonic.toolkit.NativeFolderChooser;
 import org.danizmax.jsymphonic.toolkit.ProfileElement;
 import org.naurd.media.jsymphonic.device.sony.nw.NWGeneric;
 
@@ -166,18 +166,12 @@ public class JSymphonicProfilesDialog extends javax.swing.JDialog {
      * @param tf the JTextField you want to enter path into
      */
     protected boolean OpenChooserDialog(String dialogText, JTextField tf){
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle(dialogText);
-        fc.setCurrentDirectory(new File(tf.getText()));
-        fc.setDialogType(JFileChooser.OPEN_DIALOG);
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fc.setVisible(true);
-        
-        if(fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION){
-            tf.setText(fc.getSelectedFile().getAbsolutePath());
+        String chosen = NativeFolderChooser.chooseFolder(this, dialogText, tf.getText());
+        if(chosen != null){
+            tf.setText(chosen);
             return true;
         }
-        
+
         return false;
     }
 
