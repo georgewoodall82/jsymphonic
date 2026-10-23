@@ -97,6 +97,15 @@ public class SettingsHandler extends DefaultHandler{
         this.configFile = new File(configFile);
         if(this.configFile.exists()){
             readXMLFile();
+            if(profiles.isEmpty()){
+                // A config file without any profile can't be used (it may have been saved this way by an older version)
+                getLogger().warning("File" + " " + configFile + " " + "contains no profile!, Creating new default config file");
+                createDefaultConfig();
+                writeXMLFile();
+            }else if(!profiles.containsKey(selectedProfile)){
+                // The selected profile doesn't exist anymore, fall back to another one
+                selectedProfile = (String) profiles.keySet().iterator().next();
+            }
         }else{
             // Config file doesn't exist, create one
             getLogger().warning("File" + " " + configFile + " " + "does not exist!, Creating new default config file");

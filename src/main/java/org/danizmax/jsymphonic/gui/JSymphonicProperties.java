@@ -789,10 +789,16 @@ public class JSymphonicProperties extends javax.swing.JFrame {
     private void removeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeButtonActionPerformed
         if(profileComboBox.getEditor().getItem().equals("Default")){
             JOptionPane.showMessageDialog(this, java.util.ResourceBundle.getBundle("localization/jsymphonicproperties").getString("JSymphonicProperties.default_profile_cannot_be_removed"));
+        }else if(profiles.size() <= 1){
+            JOptionPane.showMessageDialog(this, java.util.ResourceBundle.getBundle("localization/jsymphonicproperties").getString("JSymphonicProperties.last_profile_cannot_be_removed"));
         }else{
             if(JOptionPane.showConfirmDialog(this, java.util.ResourceBundle.getBundle("localization/jsymphonicproperties").getString("JSymphonicProperties.msg01.Do_you_want_to_delete_profile_named") + " " +profileComboBox.getSelectedItem() +" " + "?" , java.util.ResourceBundle.getBundle("localization/jsymphonicproperties").getString("JSymphonicProperties.msg01.Deleting_profile..."), JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
                 if(profiles.containsKey(profileComboBox.getSelectedItem())){
                     profiles.remove(profileComboBox.getSelectedItem());
+                    if(!profiles.containsKey(sHandler.getSelectedProfile())){
+                        // The selected profile has just been removed, select another one
+                        sHandler.setSelectedProfile((String) profiles.keySet().iterator().next());
+                    }
                     sHandler.setProfiles(profiles);
                     sHandler.writeXMLFile();
                     loadProfiles();
