@@ -31,8 +31,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.JFileChooser;
-
 import org.naurd.media.jsymphonic.device.sony.nw.NWGeneric;
 
 import com.pipasoft.jsymphonic.ResourceLoader;
@@ -50,15 +48,16 @@ public class JSymphonicFirstConfig extends javax.swing.JFrame {
      *
      * @param sh The instance of setting handler which needs to know the information.
      * @param devicePath The device path guessed so far, the user will have to check validity.
+     * @param usbPaths The paths of all the USB drives found, offered to the user to pick the device from.
      */
-    public JSymphonicFirstConfig(SettingsHandler sh, String devicePath) {
+    public JSymphonicFirstConfig(SettingsHandler sh, String devicePath, List<String> usbPaths) {
         // Save sh
         this.sh = sh;
 
         // Init component
         initComponents();
-        // Set the path found so far to let the user check it
-        devicePathTextField.setText(devicePath);
+        // Offer all the USB drives found, with the path found so far selected to let the user check it
+        devicePathComboBox.setPaths(usbPaths, devicePath);
         // Set the generations in the combobox, add an entry for each generation available
         generationComboBox.removeAllItems();
         List<Integer> generationList = new ArrayList(NWGeneric.getGenerationMap().values());
@@ -82,11 +81,10 @@ public class JSymphonicFirstConfig extends javax.swing.JFrame {
         configPanel = new javax.swing.JPanel();
         checkConfigLabel = new javax.swing.JLabel();
         pathLabel = new javax.swing.JLabel();
-        devicePathTextField = new javax.swing.JTextField();
+        devicePathComboBox = new org.danizmax.jsymphonic.toolkit.DevicePathComboBox();
         generationLabel = new javax.swing.JLabel();
         generationComboBox = new javax.swing.JComboBox();
         jTextArea1 = new javax.swing.JTextArea();
-        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("localization/jsymphonicproperties"); // NOI18N
@@ -107,12 +105,6 @@ public class JSymphonicFirstConfig extends javax.swing.JFrame {
 
         pathLabel.setText(bundle.getString("JSymphonicProperties.devPathLabel.text")); // NOI18N
 
-        devicePathTextField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                devicePathTextFieldActionPerformed(evt);
-            }
-        });
-
         generationLabel.setText(bundle.getString("JSymphonicProperties.genPathLabel.text")); // NOI18N
 
         generationComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Generation 5" }));
@@ -122,13 +114,6 @@ public class JSymphonicFirstConfig extends javax.swing.JFrame {
         jTextArea1.setFont(new java.awt.Font("Dialog", 2, 12));
         jTextArea1.setRows(2);
         jTextArea1.setText(bundle.getString("JSymphonicProperties.configure_device_note")); // NOI18N
-
-        jButton1.setIcon(ResourceLoader.getIcon("folder.png")); // NOI18N
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
 
         org.jdesktop.layout.GroupLayout configPanelLayout = new org.jdesktop.layout.GroupLayout(configPanel);
         configPanel.setLayout(configPanelLayout);
@@ -148,9 +133,7 @@ public class JSymphonicFirstConfig extends javax.swing.JFrame {
                         .add(generationComboBox, 0, 477, Short.MAX_VALUE))
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, configPanelLayout.createSequentialGroup()
                         .addContainerGap()
-                        .add(devicePathTextField, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 443, Short.MAX_VALUE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(jButton1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                        .add(devicePathComboBox, 0, 477, Short.MAX_VALUE)))
                 .addContainerGap())
             .add(jTextArea1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 501, Short.MAX_VALUE)
         );
@@ -161,9 +144,7 @@ public class JSymphonicFirstConfig extends javax.swing.JFrame {
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(pathLabel)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(configPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(devicePathTextField, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jButton1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .add(devicePathComboBox, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .add(18, 18, 18)
                 .add(generationLabel)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
@@ -197,13 +178,9 @@ public class JSymphonicFirstConfig extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void devicePathTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_devicePathTextFieldActionPerformed
-        
-    }//GEN-LAST:event_devicePathTextFieldActionPerformed
-
     private void applyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyButtonActionPerformed
         // On click, save the generation and the device path in the sh instance
-        sh.setDevicePath(devicePathTextField.getText());
+        sh.setDevicePath(devicePathComboBox.getDevicePath());
         sh.setGeneration(NWGeneric.getKeyfromGenerationCombo((String)generationComboBox.getSelectedItem()));
 
         // Wake the sh instance to let it continue its task
@@ -213,26 +190,13 @@ public class JSymphonicFirstConfig extends javax.swing.JFrame {
         this.dispose();
     }//GEN-LAST:event_applyButtonActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle(java.util.ResourceBundle.getBundle("localization/jsymphonicprofilesdialog").getString("JSymphonicProfilesDialog.Select_device_path"));
-        fc.setDialogType(JFileChooser.OPEN_DIALOG);
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fc.setVisible(true);
-
-        if(fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION){
-            devicePathTextField.setText(fc.getSelectedFile().getAbsolutePath());
-        }
-    }//GEN-LAST:event_jButton1ActionPerformed
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton applyButton;
     private javax.swing.JLabel checkConfigLabel;
     private javax.swing.JPanel configPanel;
-    private javax.swing.JTextField devicePathTextField;
+    private org.danizmax.jsymphonic.toolkit.DevicePathComboBox devicePathComboBox;
     private javax.swing.JComboBox generationComboBox;
     private javax.swing.JLabel generationLabel;
-    private javax.swing.JButton jButton1;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JLabel pathLabel;
     // End of variables declaration//GEN-END:variables

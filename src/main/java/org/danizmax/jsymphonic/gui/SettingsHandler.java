@@ -60,8 +60,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-import net.samuelcampos.usbdrivedetector.USBDeviceDetectorManager;
-import net.samuelcampos.usbdrivedetector.USBStorageDevice;
+import org.danizmax.jsymphonic.toolkit.DevicePathComboBox;
 
 /**
  * It handles operations such as setting, getting, saving and loading of settings values.
@@ -158,36 +157,11 @@ public class SettingsHandler extends DefaultHandler{
             }
         }
         
-        // Search for the device path
-        // Search through a list of paths
-        List devicePathsList = new ArrayList();
-        
-        // Add Detected Paths:
-        USBDeviceDetectorManager driveDetector = new USBDeviceDetectorManager();
-        List<USBStorageDevice> drives = driveDetector.getRemovableDevices();
-        for (USBStorageDevice drive : drives) {
-            devicePathsList.add(drive.getRootDirectory().getAbsolutePath());
-        }
-        try {
-            driveDetector.close();
-        } catch (Exception e) {
-            getLogger().warning(e.getMessage());
-        }
-        
-        // Search through all these paths using an iterator
-        Iterator itDevicePath = devicePathsList.iterator();
+        // Search for the device path among all the USB drives plugged in
+        List<String> usbPaths = DevicePathComboBox.detectUsbPaths();
 
-        while(devicePath.length() == 0 && itDevicePath.hasNext()){
-            String testPathString = (String)itDevicePath.next();
-            File omgaudioPathUpper = new File(testPathString + "/OMGAUDIO");
-            File omgaudioPathLower = new File(testPathString + "/omgaudio");
-            File esysPathUpper = new File(testPathString + "/ESYS");
-            File esysPathLower = new File(testPathString + "/esys");
-            if(omgaudioPathUpper.exists() || omgaudioPathLower.exists() || esysPathUpper.exists() || esysPathLower.exists()){
-                // If something is found, use it
-                devicePath = testPathString;
-            }
-        }
+        // Prefer the one which looks like a walkman
+        devicePath = DevicePathComboBox.findWalkmanPath(usbPaths);
 
         // Finally, if nothing has been found, set to a default unknown value
         if(devicePath.length() == 0){
@@ -235,7 +209,7 @@ public class SettingsHandler extends DefaultHandler{
         }
 
         // Then ask the user the generation and device
-        JSymphonicFirstConfig device_config = new JSymphonicFirstConfig(this, devicePath);
+        JSymphonicFirstConfig device_config = new JSymphonicFirstConfig(this, devicePath, usbPaths);
         device_config.setVisible(true);
         try {
             synchronized (device_config) {

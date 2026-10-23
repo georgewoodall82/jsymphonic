@@ -36,6 +36,7 @@ import java.util.List;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
+import org.danizmax.jsymphonic.toolkit.DevicePathComboBox;
 import org.danizmax.jsymphonic.toolkit.ProfileElement;
 import org.naurd.media.jsymphonic.device.sony.nw.NWGeneric;
 
@@ -87,9 +88,11 @@ public class JSymphonicProfilesDialog extends javax.swing.JDialog {
             updating = false;
             this.profiles = profiles;
             nameTextField.setEnabled(true);
+            List<String> usbPaths = DevicePathComboBox.detectUsbPaths();
+            devicePathComboBox.setPaths(usbPaths, DevicePathComboBox.findWalkmanPath(usbPaths));
             this.setVisible(true);
             if(ok){
-                return new ProfileElement(nameTextField.getText(), NWGeneric.getKeyfromGenerationCombo((String)generationComboBox.getSelectedItem()), localPathTextField.getText(), exportPathTextField.getText(), devicePathTextField.getText(), tempTextField.getText(), tempCheckBox.isSelected(), exportCheckBox.isSelected());
+                return new ProfileElement(nameTextField.getText(), NWGeneric.getKeyfromGenerationCombo((String)generationComboBox.getSelectedItem()), localPathTextField.getText(), exportPathTextField.getText(), devicePathComboBox.getDevicePath(), tempTextField.getText(), tempCheckBox.isSelected(), exportCheckBox.isSelected());
             }else{
                 return null;
             }
@@ -115,7 +118,7 @@ public class JSymphonicProfilesDialog extends javax.swing.JDialog {
                    ProfileElement pEl = (ProfileElement) profiles.get(selectedProfile);
 
                    pEl.setDeviceGeneration(NWGeneric.getKeyfromGenerationCombo((String)generationComboBox.getSelectedItem()));
-                   pEl.setDevicePath(devicePathTextField.getText());
+                   pEl.setDevicePath(devicePathComboBox.getDevicePath());
                    pEl.setLocalPath(localPathTextField.getText());
                    pEl.setExportPath(exportPathTextField.getText());
                    pEl.setTempPathSameAsDevicePath(tempCheckBox.isSelected());
@@ -146,7 +149,7 @@ public class JSymphonicProfilesDialog extends javax.swing.JDialog {
                     exportCheckBox.setSelected(sel.isExportPathSameAsLocalPath());
                     exportPathTextField.setEnabled(!sel.isExportPathSameAsLocalPath());
                     exportPathTextField.setText(sel.getExportPath());
-                    devicePathTextField.setText(sel.getDevicePath());
+                    devicePathComboBox.setPaths(DevicePathComboBox.detectUsbPaths(), sel.getDevicePath());
                     generationComboBox.setSelectedItem(generationMap.get(sel.getDeviceGeneration()));
                     tempBrowsButton.setEnabled(!sel.isTempPathSameAsDevicePath());
                     tempCheckBox.setSelected(sel.isTempPathSameAsDevicePath());
@@ -193,8 +196,7 @@ public class JSymphonicProfilesDialog extends javax.swing.JDialog {
         cancelButton = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
-        deviceBrowseButton = new javax.swing.JButton();
-        devicePathTextField = new javax.swing.JTextField();
+        devicePathComboBox = new org.danizmax.jsymphonic.toolkit.DevicePathComboBox();
         jPanel5 = new javax.swing.JPanel();
         localBrowsButton = new javax.swing.JButton();
         localPathTextField = new javax.swing.JTextField();
@@ -263,15 +265,7 @@ public class JSymphonicProfilesDialog extends javax.swing.JDialog {
         jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle2.getString("JSymphonicProperties.devPathLabel.text"))); // NOI18N
         jPanel4.setName("jPanel4"); // NOI18N
 
-        deviceBrowseButton.setIcon(ResourceLoader.getIcon("folder.png")); // NOI18N
-        deviceBrowseButton.setName("deviceBrowseButton"); // NOI18N
-        deviceBrowseButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                deviceBrowseButtonActionPerformed(evt);
-            }
-        });
-
-        devicePathTextField.setName("devicePathTextField"); // NOI18N
+        devicePathComboBox.setName("devicePathComboBox"); // NOI18N // NOI18N
 
         org.jdesktop.layout.GroupLayout jPanel4Layout = new org.jdesktop.layout.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -279,17 +273,13 @@ public class JSymphonicProfilesDialog extends javax.swing.JDialog {
             jPanel4Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
-                .add(devicePathTextField, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 423, Short.MAX_VALUE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(deviceBrowseButton, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(devicePathComboBox, 0, 451, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(jPanel4Layout.createSequentialGroup()
-                .add(jPanel4Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(deviceBrowseButton, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 19, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(devicePathTextField, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 19, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .add(devicePathComboBox, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(19, Short.MAX_VALUE))
         );
 
@@ -514,10 +504,6 @@ public class JSymphonicProfilesDialog extends javax.swing.JDialog {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-private void deviceBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deviceBrowseButtonActionPerformed
-    OpenChooserDialog(java.util.ResourceBundle.getBundle("localization/jsymphonicprofilesdialog").getString("JSymphonicProfilesDialog.Select_device_path"), devicePathTextField);
-}//GEN-LAST:event_deviceBrowseButtonActionPerformed
-
 private void localBrowsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_localBrowsButtonActionPerformed
     OpenChooserDialog(java.util.ResourceBundle.getBundle("localization/jsymphonicprofilesdialog").getString("JSymphonicProfilesDialog.Select_local_path"), localPathTextField);
 }//GEN-LAST:event_localBrowsButtonActionPerformed
@@ -566,8 +552,7 @@ private void exportCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GE
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
-    private javax.swing.JButton deviceBrowseButton;
-    private javax.swing.JTextField devicePathTextField;
+    private org.danizmax.jsymphonic.toolkit.DevicePathComboBox devicePathComboBox;
     private javax.swing.JButton exportBrowsButton;
     private javax.swing.JCheckBox exportCheckBox;
     private javax.swing.JTextField exportPathTextField;
