@@ -32,9 +32,11 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import org.naurd.media.jsymphonic.title.Oma;
 import org.naurd.media.jsymphonic.title.Title;
 
 import static org.naurd.media.jsymphonic.toolBox.DataBaseOmgaudioToolBox.*;
@@ -90,6 +92,15 @@ public class DataBaseOmgaudioExtendedToolBox {
     private static final int MOUNT_LOG_SIZE = 0x10c0;
     private static final int MOUNT_LOG_TIMES = 0x40; // Position of the two times in the DTBL class
     private static final int MOUNT_LOG_BASIC_TREE = 0xd0; // Position of the first element of the MLBL class
+
+    // Extended content info written by SonicStage in A_WM: one element per title ID, starting with the element of the title in 05CIDLST
+    private static final String CONTENT_INFO = "EXCNTINF.DAT"; // Rating of the titles
+    private static final String CONTENT_META = "EXCNTMTA.DAT"; // Title and album readings, year, track number and play count
+    private static final int CONTENT_INFO_LENGTH = 0x30;
+    private static final int CONTENT_META_LENGTH = 0x2a0;
+    private static final int CONTENT_ID_LENGTH = 0x20;
+    private static final int CONTENT_RATING = 0x20; // Position of the rating in the EXCNTINF elements: 10 points per star
+    private static final String[] CONTENT_META_TAGS = {"TSOT", "TSOA", "TYER", "TRCK", "PCNT"};
 
     private static Logger logger = Logger.getLogger("org.naurd.media.jsymphonic.toolBox.DataBaseOmgaudioExtendedToolBox");
 
@@ -277,16 +288,22 @@ public class DataBaseOmgaudioExtendedToolBox {
         // Top 100, filled in by the device
         writeTree(omgaudioDir, "2E", TAGS_TITLE, singleEmptyGroup("TOP100"), new ArrayList<Integer>());
 
-        // Ratings: all the titles are unrated (last group)
+        // Ratings: 5 stars to 1 star, then the unrated titles, with the ratings kept by SonicStage in EXCNTINF
         List<Group> groups = new ArrayList<Group>();
         List<Integer> titleIds = new ArrayList<Integer>();
-        String[] ratings = {"☆☆☆☆☆", "☆☆☆☆", "☆☆☆", "☆☆", "☆"};
-        for (String rating : ratings) {
-            groups.add(new Group(1, 0, new String[]{rating, ""}, 0));
-        }
+        String[] ratings = {"☆☆☆☆☆", "☆☆☆☆", "☆☆☆", "☆☆", "☆", ""};
+        Map<String, byte[]> contentInfo = readContentElements(findFile(findFile(omgaudioDir, "A_WM"), CONTENT_INFO), "ARCI", CONTENT_INFO_LENGTH);
         List<Title> sortedTitles = sort(allTitles, new Level[]{new Level(ARTIST, ARTIST, true, null), new Level(ALBUM, ALBUM, true, null)});
-        groups.add(new Group(1, totalLength(sortedTitles), new String[]{"", ""}, sortedTitles.isEmpty() ? 0 : 1));
-        addTitleIds(titleIds, sortedTitles, titles);
+        for (int i = 0; i < ratings.length; i++) {
+            List<Title> titlesInGroup = new ArrayList<Title>();
+            for (Title title : sortedTitles) {
+                if (ratings.length - 1 - starsOf(title, contentInfo) == i) {
+                    titlesInGroup.add(title);
+                }
+            }
+            groups.add(new Group(1, totalLength(titlesInGroup), new String[]{ratings[i], ""}, titlesInGroup.isEmpty() ? 0 : titleIds.size() + 1));
+            addTitleIds(titleIds, titlesInGroup, titles);
+        }
         writeTree(omgaudioDir, "2F", TAGS_TITLE_SORT, groups, titleIds);
 
         // Genre > Artist > Album
@@ -427,6 +444,158 @@ public class DataBaseOmgaudioExtendedToolBox {
             }
             raf.close();
         }
+    }
+
+    /**
+     * Write the extended content info of the titles in A_WM/EXCNTINF.DAT (ratings) and A_WM/EXCNTMTA.DAT (readings of
+     * the title and the album, year, track number and play count), as SonicStage does. Both files have one element per
+     * title ID, like 05CIDLST. The device uses them once the database is known to be up to date (see writeMountLog),
+     * and reports an incompatible database if they don't match the other files.
+     * The elements of the titles transfered by SonicStage are kept (they are found with their content ID), the ones of
+     * the other titles are made from their info, without rating or reading.
+     *
+     * @param omgaudioDir Instance of the OMGAUDIO folder.
+     * @param titles Map of the titles in the database (titles as keys, title IDs as values).
+     * @throws Exception
+     */
+    public static void writeContentInfo(File omgaudioDir, JSymphonicMap titles) throws Exception {
+        File folder = findFile(omgaudioDir, "A_WM");
+        if (!folder.exists() && !folder.mkdir()) {
+            throw new IOException("Cannot create folder " + folder.getPath());
+        }
+        File infoFile = findFile(folder, CONTENT_INFO);
+        File metaFile = findFile(folder, CONTENT_META);
+        Map<String, byte[]> oldInfo = readContentElements(infoFile, "ARCI", CONTENT_INFO_LENGTH);
+        Map<String, byte[]> oldMeta = readContentElements(metaFile, "EXCM", CONTENT_META_LENGTH);
+        int numberOfElements = titles.isEmpty() ? 0 : titles.maxValue();
+
+        RandomAccessFile rafInfo = new RandomAccessFile(infoFile, "rw");
+        RandomAccessFile rafMeta = new RandomAccessFile(metaFile, "rw");
+        try {
+            rafInfo.setLength(0);
+            rafMeta.setLength(0);
+            writeContentHeader(rafInfo, "ARCI", "ARCB", numberOfElements, CONTENT_INFO_LENGTH);
+            writeContentHeader(rafMeta, "EXCM", "EXCB", numberOfElements, CONTENT_META_LENGTH);
+
+            for (int i = 1; i <= numberOfElements; i++) {
+                Title title = (Title) titles.getKey(i);
+                byte[] contentId = contentIdOf(title);
+                String key = toHex(contentId);
+
+                if (oldInfo.containsKey(key) && oldMeta.containsKey(key)) {
+                    // Title transfered by SonicStage, keep its info
+                    rafInfo.write(oldInfo.get(key));
+                    rafMeta.write(oldMeta.get(key));
+                    continue;
+                }
+
+                rafInfo.write(contentId);
+                if (title == null) {
+                    WriteZeros(rafInfo, CONTENT_INFO_LENGTH - CONTENT_ID_LENGTH);
+                } else {
+                    rafInfo.write(new byte[]{0, (byte) 0xff}); // Not rated
+                    WriteZeros(rafInfo, CONTENT_INFO_LENGTH - CONTENT_ID_LENGTH - 2);
+                }
+
+                rafMeta.write(contentId);
+                if (title == null) {
+                    WriteZeros(rafMeta, CONTENT_META_LENGTH - CONTENT_ID_LENGTH);
+                } else {
+                    String[] values = {title.getTitle(), title.getAlbum(),
+                        title.getYear() > 0 ? String.valueOf(title.getYear()) : "",
+                        title.getTitleNumber() > 0 ? String.valueOf(title.getTitleNumber()) : "",
+                        "0"}; // Play count
+                    for (int j = 0; j < CONTENT_META_TAGS.length; j++) {
+                        WriteTag(rafMeta, CONTENT_META_TAGS[j], values[j]);
+                    }
+                }
+            }
+        } finally {
+            rafInfo.close();
+            rafMeta.close();
+        }
+    }
+
+    /**
+     * Write the header of EXCNTINF/EXCNTMTA: a table with one class of elements.
+     */
+    private static void writeContentHeader(RandomAccessFile raf, String tableName, String className, int numberOfElements, int elementLength) throws IOException {
+        raf.write(tableName.getBytes());
+        raf.write(new byte[]{1, 0, 0, 0, 1, 0, 0, 0});
+        WriteZeros(raf, 4);
+        WriteClassDescription(raf, className, 0x20, 0x10 + numberOfElements*elementLength);
+        WriteClassHeader(raf, className, numberOfElements, elementLength);
+    }
+
+    /**
+     * Read the elements of EXCNTINF/EXCNTMTA which belong to a title with a content ID.
+     *
+     * @return The elements, with the hexadecimal value of their first 0x20 bytes (the content ID) as keys. Empty if the file doesn't exist or isn't valid.
+     */
+    private static Map<String, byte[]> readContentElements(File file, String tableName, int elementLength) {
+        Map<String, byte[]> elements = new HashMap<String, byte[]>();
+        if (!file.exists()) {
+            return elements;
+        }
+        try {
+            RandomAccessFile raf = new RandomAccessFile(file, "r");
+            try {
+                byte[] header = new byte[0x30];
+                raf.readFully(header);
+                int numberOfElements = ((header[0x24] & 0xff) << 8) | (header[0x25] & 0xff);
+                int length = ((header[0x26] & 0xff) << 8) | (header[0x27] & 0xff);
+                if (!new String(header, 0, 4, "ISO-8859-1").equals(tableName) || length != elementLength || raf.length() < 0x30 + (long) numberOfElements*length) {
+                    logger.warning(file.getName() + " is not valid, it is rewritten.");
+                    return elements;
+                }
+                for (int i = 0; i < numberOfElements; i++) {
+                    byte[] element = new byte[length];
+                    raf.readFully(element);
+                    byte[] contentId = Arrays.copyOf(element, CONTENT_ID_LENGTH);
+                    if (!isZero(contentId)) {
+                        elements.put(toHex(contentId), element);
+                    }
+                }
+            } finally {
+                raf.close();
+            }
+        } catch (IOException ex) {
+            logger.warning("Cannot read " + file.getName() + ": " + ex.getMessage());
+        }
+        return elements;
+    }
+
+    /**
+     * Gives the start of the element of a title in 05CIDLST: the content ID written by SonicStage, or zeros.
+     */
+    private static byte[] contentIdOf(Title title) {
+        byte[] contentId = new byte[CONTENT_ID_LENGTH];
+        if (title instanceof Oma) {
+            Oma oma = (Oma) title;
+            byte[] source = (oma.getDrm() == Oma.DRM_LSI) ? oma.getDrmKey() : oma.getContentId();
+            System.arraycopy(source, 0, contentId, 0, Math.min(source.length, CONTENT_ID_LENGTH));
+        }
+        return contentId;
+    }
+
+    /**
+     * Gives the number of stars of a title (0 if it isn't rated), from the elements of EXCNTINF.
+     */
+    private static int starsOf(Title title, Map<String, byte[]> contentInfo) {
+        byte[] contentId = contentIdOf(title);
+        if (isZero(contentId) || !contentInfo.containsKey(toHex(contentId))) {
+            return 0;
+        }
+        int stars = (contentInfo.get(toHex(contentId))[CONTENT_RATING] & 0xff) / 10;
+        return Math.min(stars, 5);
+    }
+
+    private static String toHex(byte[] bytes) {
+        StringBuilder hex = new StringBuilder();
+        for (byte b : bytes) {
+            hex.append(String.format("%02x", b));
+        }
+        return hex.toString();
     }
 
     /**

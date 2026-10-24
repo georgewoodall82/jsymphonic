@@ -453,6 +453,16 @@ System.out.println(titleToUpdate);
         genNw.sendFileChanged(NWGenericListener.UPDATING, "05CIDLST");
         genNw.sendFileProgressChanged(NWGenericListener.UPDATING, 100, 0);
 
+        if(extendedDatabase){
+            // Write A_WM/EXCNTINF and A_WM/EXCNTMTA (extended info of the titles, matching 05CIDLST)
+            try {
+                DataBaseOmgaudioExtendedToolBox.writeContentInfo(omgaudioDir, titles);
+            } catch (Exception ex) {
+                logger.severe("ERROR: while writting EXCNTINF and EXCNTMTA files: " + ex.getMessage());
+                errorMessage +=  "EXCNTINF/EXCNTMTA" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+            }
+        }
+
 
         // Write the times of 01TREE01 and 04CNTINF in A_WM/AFMNTLOG, else the device displays "Simple Mode" (created for the extended database, updated if it exists for the others)
         try {
