@@ -12,6 +12,23 @@
 		<lwjgl.version>3.3.6</lwjgl.version>
 	</properties>
 	<build>
+		<resources>
+			<!-- only version.properties is filtered, so that ${project.version} ends up in it and the other resources are left alone -->
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>version.properties</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+				<excludes>
+					<exclude>version.properties</exclude>
+				</excludes>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

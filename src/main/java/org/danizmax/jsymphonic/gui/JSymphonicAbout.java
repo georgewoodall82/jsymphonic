@@ -105,7 +105,7 @@ public class JSymphonicAbout extends javax.swing.JFrame {
 
         AplicationNameAndVersionLabel.setFont(new java.awt.Font("Bitstream Vera Sans", 1, 18)); // NOI18N
         AplicationNameAndVersionLabel.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        AplicationNameAndVersionLabel.setText(bundle.getString("global.version")); // NOI18N
+        AplicationNameAndVersionLabel.setText("JSymphonic"); // NOI18N
         AplicationNameAndVersionLabel.setName("AplicationNameAndVersionLabel"); // NOI18N
 
         commentLabel.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
