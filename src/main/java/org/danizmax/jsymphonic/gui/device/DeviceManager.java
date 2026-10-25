@@ -122,6 +122,9 @@ public class DeviceManager{
                 case NWGeneric.GENERATION_7:
                     genericDevice = new NWOmgaudio(devicePath, deviceName, "", sourceIcon, NWGeneric.GENERATION_7, getListener(),getExportPath());
                     break;
+                case NWGeneric.GENERATION_7_EXTENDED:
+                    genericDevice = new NWOmgaudio(devicePath, deviceName, "", sourceIcon, NWGeneric.GENERATION_7_EXTENDED, getListener(),getExportPath());
+                    break;
                 case NWGeneric.GENERATION_VAIO:
                     genericDevice = new NWOmgaudio(devicePath, deviceName, "", sourceIcon, NWGeneric.GENERATION_VAIO, getListener(),getExportPath());
                     break;

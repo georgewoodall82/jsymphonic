@@ -253,8 +253,14 @@ public class JSymphonicMutableTreeNode extends DefaultMutableTreeNode implements
      * @return Title object. If node doesn't represent a track null will be returned
      */
     public Title getAsTitle() {
-        if(t == null)
-            return new Title(f);
+        if(t == null){
+            // Local file: read it with the class matching its format to get its real info (bitrate, frequency, length,...)
+            try {
+                return Title.getTitleFromFile(f);
+            } catch (Exception ex) {
+                return new Title(f);
+            }
+        }
         else
             return t;
     }

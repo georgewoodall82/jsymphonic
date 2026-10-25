@@ -59,6 +59,9 @@ public class Title {
     // Title information
     protected java.net.URL sourceURL = null; // Source URL of the file (for Podcast)
     protected File sourceFile = null; // The file (for local file)
+    protected File coverFile = null; // The file to read the cover art from, if it isn't the source file (for transcoded files)
+    protected byte[] contentId = new byte[0x18]; // The content ID written in the EA3 part of the tag of the OMA file on the device, zeros if none
+    protected String artistReading = ""; // Reading of the artist name (in kana for Japanese names), as written by SonicStage, empty if unknown
     protected long fileSize = 0; // Size of the file in octet
     protected long fileSizeAfterTranscodage = 0; // Size of the file in octet after transcodage (if any)
     protected int format = Title.AUDIO;
@@ -385,6 +388,45 @@ public class Title {
     public File getSourceFile(){
         return sourceFile;
     }
+
+    /**
+     *Obtains the file the cover art of this title should be read from. It's the source file, unless the title has been transcoded into a temporary file.
+     *
+     *@return the file holding the cover art.
+     */
+    public File getCoverFile(){
+        if(coverFile != null){
+            return coverFile;
+        }
+        return sourceFile;
+    }
+
+    /**
+     *Sets the file the cover art of this title should be read from.
+     *
+     *@param coverFile the file holding the cover art.
+     */
+    public void setCoverFile(File coverFile){
+        this.coverFile = coverFile;
+    }
+
+    /**
+     *Obtains the content ID of this title, written in the EA3 part of the tag of its OMA file on the device.
+     *
+     *@return The 0x18 bytes of the content ID, as written in the 05CIDLST file. Bytes are zeros if the title has no content ID.
+     */
+    public byte[] getContentId(){
+        return contentId;
+    }
+
+    /**
+     *Sets the content ID of this title (once its OMA file has been written on the device).
+     *
+     *@param contentId the 0x18 bytes of the content ID.
+     */
+    public void setContentId(byte[] contentId){
+        this.contentId = contentId;
+    }
     
     /**
      *Obtains the bitrate this title.
@@ -402,6 +444,27 @@ public class Title {
      */
     public int getLength() {
         return length;
+    }
+
+    /**
+     *Sets the length of the title in millisecond.
+     *
+     *@param length the length of the title.
+     */
+    public void setLength(int length) {
+        this.length = length;
+    }
+
+    /**
+     *Obtains the reading of the artist name (in kana for Japanese names), used by the device to sort the artists.
+     *
+     *@return the reading written by SonicStage, or the artist name if there is none, as SonicStage does.
+     */
+    public String getArtistReading() {
+        if(artistReading == null || artistReading.length() == 0){
+            return getArtist();
+        }
+        return artistReading;
     }
     
     /**
@@ -855,5 +918,6 @@ public class Title {
         albumName = titleWithInfo.getAlbum();
         year = titleWithInfo.getYear();
         genre = titleWithInfo.getGenre();
+        coverFile = titleWithInfo.getCoverFile();
     }
 }

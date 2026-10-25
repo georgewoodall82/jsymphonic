@@ -513,6 +513,11 @@ public class FFMpegToolBox {
 //             // If FFMPEG return 1 and no error has already been detected, an unknown error occured
 //             lastError = ERROR;
 //         }
+        // But if FFMPEG produced nothing, the conversion has failed whatever FFMPEG returned (for instance if no MP3 encoder is available)
+        if(lastError == NO_ERROR && destination.length() == 0){
+            logger.warning("FFMPEG returned "+p.exitValue()+" and produced an empty file while converting: "+source.getAbsolutePath());
+            lastError = ERROR;
+        }
         
         // Clear references to the process streams
         processin=null;

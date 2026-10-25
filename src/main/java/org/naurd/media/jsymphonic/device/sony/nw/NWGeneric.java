@@ -97,6 +97,7 @@ public abstract class NWGeneric implements org.naurd.media.jsymphonic.device.Dev
     public static final int GENERATION_6 = 6;
     public static final int GENERATION_7 = 7;
     public static final int GENERATION_VAIO = 8;
+    public static final int GENERATION_7_EXTENDED = 9; // Generation 7 with the extended database (NW-A80x, NW-A91x)
     protected static Map generationMap = new HashMap(); // used to store the different generation names
     
     // Shared variables for the encode, decode, transfer thread are stored in monitors
@@ -1140,6 +1141,10 @@ public abstract class NWGeneric implements org.naurd.media.jsymphonic.device.Dev
             // Display en error
             logger.warning("ERROR: ffmpeg can't be found, titles that need to be transcoded can't be transfered, please check you installation of ffmpeg.");
 
+            // Count the titles which won't be encoded, to warn the user
+            titlesNotEncoded += titleVectorsMonitor.size(TitleVectorsMonitor.ENCODE_VECTOR);
+            noFfmpeg = titleVectorsMonitor.size(TitleVectorsMonitor.ENCODE_VECTOR);
+
             // Empty the list of title to encode
             titleVectorsMonitor.clear(TitleVectorsMonitor.ENCODE_VECTOR);
         }
@@ -1250,6 +1255,8 @@ public abstract class NWGeneric implements org.naurd.media.jsymphonic.device.Dev
                 else {
                     // Read the MP3 file info on the new created MP3 file
                     titleEncoded.readMP3Info();
+                    // The cover art is read from the original file, the temporary file may not have it
+                    titleEncoded.setCoverFile(titleToEncode.getCoverFile());
 
                     // Save the number of file encoded
                     titlesEncoded++;
@@ -1541,6 +1548,7 @@ public abstract class NWGeneric implements org.naurd.media.jsymphonic.device.Dev
         generationMap.put(GENERATION_5, java.util.ResourceBundle.getBundle("localization/jsymphonicprofilesdialog").getString("JSymphonicProfilesDialog.generation5"));
         generationMap.put(GENERATION_6, java.util.ResourceBundle.getBundle("localization/jsymphonicprofilesdialog").getString("JSymphonicProfilesDialog.generation6"));
         generationMap.put(GENERATION_7, java.util.ResourceBundle.getBundle("localization/jsymphonicprofilesdialog").getString("JSymphonicProfilesDialog.generation7"));
+        generationMap.put(GENERATION_7_EXTENDED, java.util.ResourceBundle.getBundle("localization/jsymphonicprofilesdialog").getString("JSymphonicProfilesDialog.generation7Extended"));
         generationMap.put(GENERATION_VAIO, java.util.ResourceBundle.getBundle("localization/jsymphonicprofilesdialog").getString("JSymphonicProfilesDialog.generationVaio"));
     }
 

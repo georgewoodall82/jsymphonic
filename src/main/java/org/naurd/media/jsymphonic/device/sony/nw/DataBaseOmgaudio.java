@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import org.naurd.media.jsymphonic.title.Title;
+import org.naurd.media.jsymphonic.toolBox.DataBaseOmgaudioExtendedToolBox;
 import org.naurd.media.jsymphonic.toolBox.DataBaseOmgaudioToolBox;
 
 /**
@@ -62,7 +63,9 @@ public class DataBaseOmgaudio extends DataBase{
     private boolean gotIntelligentFeatures; // True if device has intelligent features
     private boolean gotCovers; // True if device can display covers
     private boolean gotSportFeatures; // True if device has sport features
- 
+    private boolean extendedDatabase; // True if device uses the extended database layout (NW-A80x, NW-A91x)
+    private DataBaseOmgaudioExtendedToolBox.OldDatabase oldDatabase; // What is kept from the database on the device when it is rewritten (extended database only)
+
     //Other
     private static Logger logger = Logger.getLogger("org.naurd.media.jsymphonic.system.sony.nw.OmaDataBaseGen3");
       
@@ -77,8 +80,19 @@ public class DataBaseOmgaudio extends DataBase{
      * @author nicolas_cardoso
      */
     public DataBaseOmgaudio(java.io.File omgaudioDir, boolean gotPlaylist, boolean gotIntelligentFeatures, boolean gotCovers, boolean gotSportsFeatures, boolean gotKey) {
+        this(omgaudioDir, gotPlaylist, gotIntelligentFeatures, gotCovers, gotSportsFeatures, gotKey, false);
+    }
+
+    /**
+     * Allows to create an instance of DataBaseOmgaudio from an existing device.
+     *
+     *@param omgaudioDir The directory OMGAUDIO from the device.
+     *@param extendedDatabase True if the device uses the extended database layout (NW-A80x, NW-A91x).
+     */
+    public DataBaseOmgaudio(java.io.File omgaudioDir, boolean gotPlaylist, boolean gotIntelligentFeatures, boolean gotCovers, boolean gotSportsFeatures, boolean gotKey, boolean extendedDatabase) {
         // Call the super contructor
         super();
+        this.extendedDatabase = extendedDatabase;
         
         // Save the base directory
         this.omgaudioDir = omgaudioDir;
@@ -134,6 +148,9 @@ System.out.println(titleToUpdate);
 
         // Inform GUI
         genNw.sendTransferStepStarted(NWGenericListener.UPDATING);
+
+        // Read the trees filled in by the device (history, bookmarks,...) and the playlists before the database is erased, to keep them
+        oldDatabase = extendedDatabase ? DataBaseOmgaudioExtendedToolBox.readOldDatabase(omgaudioDir) : null;
         
         //Backup the database if it is not already done
         File backupDir = new File(omgaudioDir + "/db_backup");
@@ -186,13 +203,13 @@ System.out.println(titleToUpdate);
             }
         }
         
-        // Erase all files in the OMGAUDIO folders (which are database files, and the database is going to be re-written) exepct the key file DvID.DAT, ffmpeg and the backup of the db
+        // Erase all files in the OMGAUDIO folders (which are database files, and the database is going to be re-written) exepct the key file DvID.DAT, ffmpeg, the files belonging to the device and the backup of the db
         String[] databaseFiles = omgaudioDir.list(); // Search all the files in the database
         boolean error = false;
         for(int i=0; i<databaseFiles.length; i++) {
             String databaseFileName = databaseFiles[i];
-            // If the file is not the key files or the FFMPEG exe, delete it (file starting with "." are ignore)
-            if((databaseFileName.toLowerCase().compareTo("dvid.dat") == 0) || (databaseFileName.toLowerCase().compareTo("ffmpeg.exe") == 0) || (databaseFileName.toLowerCase().compareTo("pthreadGC2.dll") == 0) || (databaseFileName.toLowerCase().compareTo("ffmpeg-win32.zip") ==0 ) || (databaseFileName.toLowerCase().compareTo("ffmpeg-win32") == 0) || (databaseFileName.toLowerCase().compareTo("30grct") == 0) || (databaseFileName.toLowerCase().compareTo("0001001d.dat") == 0) || (databaseFileName.toLowerCase().compareTo("00010021.dat") == 0) || (databaseFileName.toLowerCase().contains("srcidlst"))  || (databaseFileName.compareTo("db_backup") == 0)  || (databaseFileName.toLowerCase().contains("10f")) || (databaseFileName.toLowerCase().contains("jsymphonic")) || (databaseFileName.toLowerCase().startsWith(".")) ){
+            // If the file is not the key files, a device file or the FFMPEG exe, delete it (file starting with "." are ignore)
+            if(DataBaseOmgaudioExtendedToolBox.isDeviceFile(databaseFileName) || (databaseFileName.toLowerCase().compareTo("dvid.dat") == 0) || (databaseFileName.toLowerCase().compareTo("ffmpeg.exe") == 0) || (databaseFileName.toLowerCase().compareTo("pthreadGC2.dll") == 0) || (databaseFileName.toLowerCase().compareTo("ffmpeg-win32.zip") ==0 ) || (databaseFileName.toLowerCase().compareTo("ffmpeg-win32") == 0) || (databaseFileName.toLowerCase().compareTo("30grct") == 0) || (databaseFileName.toLowerCase().compareTo("0001001d.dat") == 0) || (databaseFileName.toLowerCase().compareTo("00010021.dat") == 0) || (databaseFileName.toLowerCase().contains("srcidlst"))  || (databaseFileName.compareTo("db_backup") == 0)  || (databaseFileName.toLowerCase().contains("10f")) || (databaseFileName.toLowerCase().contains("jsymphonic")) || (databaseFileName.toLowerCase().startsWith(".")) ){
                 continue;
             }
 
@@ -258,7 +275,12 @@ System.out.println(titleToUpdate);
 
         // Write 00GRTLST file (info about the database)
         try {
-            DataBaseOmgaudioToolBox.write00GRTLST(omgaudioDir);
+            if(extendedDatabase){
+                DataBaseOmgaudioExtendedToolBox.write00GTRLST(omgaudioDir);
+            }
+            else {
+                DataBaseOmgaudioToolBox.write00GRTLST(omgaudioDir);
+            }
         } catch (Exception ex) {
             logger.severe("ERROR: while writting 00GRTLST file: " + ex.getMessage());
             errorMessage =  "00GRTLST" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
@@ -270,7 +292,7 @@ System.out.println(titleToUpdate);
 
         // Write 01TREE01 and 03GINF01 files (info about the titles)
         try {
-            DataBaseOmgaudioToolBox.write01TREE01and03GINF01(omgaudioDir, titles);
+            DataBaseOmgaudioToolBox.write01TREE01and03GINF01(omgaudioDir, titles, !extendedDatabase);
         } catch (Exception ex) {
             logger.severe("ERROR: while writting 01TREE01 and 03GINF01 files: " + ex.getMessage());
             errorMessage +=  "01TREE01" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
@@ -344,13 +366,33 @@ System.out.println(titleToUpdate);
         genNw.sendFileChanged(NWGenericListener.UPDATING, "03GINF22");
         genNw.sendFileProgressChanged(NWGenericListener.UPDATING, 100, 0);
 
-        // Write 01TREE2D and 03GINF2D files
-        try {
-            DataBaseOmgaudioToolBox.write01TREE2Dand03GINF2D(omgaudioDir, titles);
-        } catch (Exception ex) {
-            logger.severe("ERROR: while writting 01TREE2D and 03GINF2D files: " + ex.getMessage());
-            errorMessage +=  "01TREE2D" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
-            errorMessage +=  "03GINF2D" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+        if(extendedDatabase){
+            // Write the trees 2D (history), 10 to 15 (bookmarks) and 2E to 36 (top 100, ratings, genre/year/initial browsing, recent transfers, artist/album with thumbnails)
+            try {
+                DataBaseOmgaudioExtendedToolBox.writeExtendedTrees(omgaudioDir, titles, oldDatabase);
+            } catch (Exception ex) {
+                logger.severe("ERROR: while writting extended tree files: " + ex.getMessage());
+                errorMessage +=  "01TREExx" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+                errorMessage +=  "03GINFxx" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+            }
+
+            // Create the files the device expects, if they are missing
+            try {
+                DataBaseOmgaudioExtendedToolBox.createDeviceFiles(omgaudioDir);
+            } catch (Exception ex) {
+                logger.severe("ERROR: while creating device files: " + ex.getMessage());
+                errorMessage +=  "ACTIVITY/MACLIST0/RESERVED" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+            }
+        }
+        else {
+            // Write 01TREE2D and 03GINF2D files
+            try {
+                DataBaseOmgaudioToolBox.write01TREE2Dand03GINF2D(omgaudioDir, titles);
+            } catch (Exception ex) {
+                logger.severe("ERROR: while writting 01TREE2D and 03GINF2D files: " + ex.getMessage());
+                errorMessage +=  "01TREE2D" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+                errorMessage +=  "03GINF2D" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+            }
         }
 
         // Update progress bar in GUI
@@ -361,7 +403,12 @@ System.out.println(titleToUpdate);
 
         // Write 02TREINF file (list of the keys)
         try {
-            DataBaseOmgaudioToolBox.write02TREINF(omgaudioDir, titles);
+            if(extendedDatabase){
+                DataBaseOmgaudioExtendedToolBox.write02TREINF(omgaudioDir, titles);
+            }
+            else {
+                DataBaseOmgaudioToolBox.write02TREINF(omgaudioDir, titles);
+            }
         } catch (Exception ex) {
             logger.severe("ERROR: while writting 02TREINF file: " + ex.getMessage());
             errorMessage +=  "02TREINF" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
@@ -398,9 +445,14 @@ System.out.println(titleToUpdate);
         genNw.sendFileProgressChanged(NWGenericListener.UPDATING, 100, 0);
 
 
+        if(extendedDatabase){
+            // Each title needs its own content ID, used in 05CIDLST and in the A_WM folder
+            DataBaseOmgaudioExtendedToolBox.writeMissingContentIds(titles);
+        }
+
         // Write 05CIDLST file
         try {
-            DataBaseOmgaudioToolBox.write05CIDLST(omgaudioDir, titles);
+            DataBaseOmgaudioToolBox.write05CIDLST(omgaudioDir, titles, extendedDatabase);
         } catch (Exception ex) {
             logger.severe("ERROR: while writting 05CIDLST file: " + ex.getMessage());
             errorMessage +=  "05CIDLST" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
@@ -409,6 +461,25 @@ System.out.println(titleToUpdate);
         // Update progress bar in GUI
         genNw.sendFileChanged(NWGenericListener.UPDATING, "05CIDLST");
         genNw.sendFileProgressChanged(NWGenericListener.UPDATING, 100, 0);
+
+        if(extendedDatabase){
+            // Write A_WM/EXCNTINF and A_WM/EXCNTMTA (extended info of the titles, matching 05CIDLST)
+            try {
+                DataBaseOmgaudioExtendedToolBox.writeContentInfo(omgaudioDir, titles);
+            } catch (Exception ex) {
+                logger.severe("ERROR: while writting EXCNTINF and EXCNTMTA files: " + ex.getMessage());
+                errorMessage +=  "EXCNTINF/EXCNTMTA" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+            }
+        }
+
+
+        // Write the times of 01TREE01 and 04CNTINF in A_WM/AFMNTLOG, else the device displays "Simple Mode" (created for the extended database, updated if it exists for the others)
+        try {
+            DataBaseOmgaudioExtendedToolBox.writeMountLog(omgaudioDir, extendedDatabase);
+        } catch (Exception ex) {
+            logger.severe("ERROR: while writting AFMNTLOG file: " + ex.getMessage());
+            errorMessage +=  "AFMNTLOG" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
+        }
 
         return errorMessage;
     }
@@ -532,39 +603,43 @@ System.out.println(titleToUpdate);
         }
 
         try{
-            //Opens the file in stream mode (must be in try-catch)
-            fileStream = sourceFile.toURI().toURL().openStream();
+            //Opens the file in stream mode (must be in try-catch). The data are read with readFully, since read may return less bytes than asked
+            java.io.DataInputStream dataStream = new java.io.DataInputStream(new java.io.BufferedInputStream(new java.io.FileInputStream(sourceFile)));
+            fileStream = dataStream;
 
             // Skip 0x24 bytes
-            fileStream.skip(0x10);
-            fileStream.skip(0x10);
-            fileStream.skip(0x4);
+            dataStream.readFully(new byte[0x24]);
 
             // Read the number of elements in the class
-            fileStream.read(buffer2);
+            dataStream.readFully(buffer2);
             numberOfTitles = DataBaseOmgaudioToolBox.bytes2int(buffer2); // Convert it to int
 
             // Skip bytes to first element
-            fileStream.skip(0x0A);
+            dataStream.readFully(new byte[0x0A]);
 
             // Read each element
             for(int i=1; i <= numberOfTitles; i++){
-                fileStream.skip(6); // Skip "TIT2" and the 3 bytes giving the text-encoding
-                fileStream.read(buffer150);
-                path = new String(DataBaseOmgaudioToolBox.rtrimZeros(buffer150),"UTF16"); // Convert to string
+                dataStream.readFully(new byte[6]); // Skip "TIT2" and the 2 bytes giving the text-encoding
+                dataStream.readFully(buffer150);
+                path = new String(buffer150,"UTF-16BE"); // Convert to string
                 path = path.replace(""+(char)0,""); //Remove empty characters from the TagValue (these characters are due to 16-bits encodage in Ea3Tag)
 
                 if(path.compareTo("") != 0){
                     // If path is path, add it to the list
                     paths.put(i, path);
                 }
-                else{
-                }
             }
 
         }
         catch(Exception e){
-
+            logger.warning("Cannot read 04PATLST.DAT: " + e.getMessage());
+        }
+        finally{
+            try {
+                if(fileStream != null){
+                    fileStream.close();
+                }
+            } catch (IOException ex) {}
         }
         return 0;
     }

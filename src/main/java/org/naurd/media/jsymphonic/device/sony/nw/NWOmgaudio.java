@@ -34,12 +34,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import org.naurd.media.jsymphonic.title.Oma;
 import org.naurd.media.jsymphonic.title.Title;
+import org.naurd.media.jsymphonic.toolBox.DataBaseOmgaudioToolBox;
 
 /**
  * This class describe a Network Walkman with a database file based on a "OMGAUDIO" folder (generations 3 to 7).
@@ -106,6 +108,10 @@ public class NWOmgaudio extends NWGeneric{
                 case GENERATION_7:
                     this.gotkey = false;
                     dataBase = new DataBaseOmgaudio(source, true, true, true, false, gotkey); // Got playlist, got intelligent features, got covers
+                    break;
+                case GENERATION_7_EXTENDED:
+                    this.gotkey = false;
+                    dataBase = new DataBaseOmgaudio(source, true, true, true, false, gotkey, true); // Got playlist, got intelligent features, got covers, extended database
                     break;
                 case GENERATION_VAIO:
                     this.gotkey = true;
@@ -624,6 +630,7 @@ public class NWOmgaudio extends NWGeneric{
             // Copy the data
             try {
                 binaryCopy(NWGenericListener.IMPORTING, titleToImport, newOma, titleId);
+                titleToImport.setContentId(newOma.getContentId()); // The content ID written in the file is needed in the database
                 logger.info("Add file, source:'" + titleToImport.getSourceFile().getPath() + "', destination:'"+source.getPath() + "/" + dirName + "/" + fileName+"'.");
             } catch (Exception ex) {
                 logger.severe("Error while copying data: "+ex.getMessage());
@@ -752,6 +759,9 @@ public class NWOmgaudio extends NWGeneric{
         double progressBarValue = 0;
         sendLoadingInitialization(numberOfTitles);
 
+        // The exact length of the titles is only known from 04CNTINF (the tags of the files written by SonicStage hold a length rounded to the second)
+        Map<Integer, Object[]> lengths = DataBaseOmgaudioToolBox.read04CNTINF(source);
+
         // Add the titles to the database
         Iterator it = totalTitlesList.iterator();
         while (it.hasNext()) {
@@ -784,6 +794,9 @@ public class NWOmgaudio extends NWGeneric{
                 //Add the title and the titleId in the database if not null
                 if ( t != null && titleId != 0 ){
                     t.setStatus(Title.ON_DEVICE); // Change its status
+                    if(lengths.containsKey(titleId) && t.getTitle().equals(lengths.get(titleId)[0]) && (Integer)lengths.get(titleId)[1] > 0){
+                        t.setLength((Integer)lengths.get(titleId)[1]);
+                    }
                     dataBase.addTitle(t, titleId);
                     if(pathListValid < 0){
                         dataBase.addPath(titleId, "unknown");
