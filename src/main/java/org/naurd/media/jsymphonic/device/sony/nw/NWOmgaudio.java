@@ -136,6 +136,30 @@ public class NWOmgaudio extends NWGeneric{
         }
     }
 
+    /**
+     * Make a tag value usable as a file or directory name on any filesystem.
+     * Characters forbidden on Windows (and FAT/NTFS volumes) are replaced by
+     * look-alikes, and trailing dots/spaces, which Windows silently strips, are removed.
+     * Unicode escapes are used as the source encoding is not fixed.
+     *
+     * @param name the raw tag value (artist, album or title).
+     * @return a string that is safe to use as a file name component.
+     */
+    static String toSafeFileName(String name) {
+        String safe = name.replace("/", "-")
+                .replace("\\", "-")
+                .replace("?", " ")
+                .replace("*", "∗")  // asterisk operator
+                .replace(":", "꞉")  // modifier letter colon
+                .replace("\"", "“") // left double quotation mark
+                .replace("<", "‹")  // single left-pointing angle quotation mark
+                .replace(">", "›")  // single right-pointing angle quotation mark
+                .replace("|", "∣"); // divides
+        // Windows strips trailing dots and spaces, which breaks directory lookups
+        safe = safe.replaceAll("[. ]+$", "");
+        return safe;
+    }
+
 /* Abstract Methods implementation */
     /**
      *Export a list of titles from the device to the computer.
@@ -177,9 +201,9 @@ public class NWOmgaudio extends NWGeneric{
 
             //// Create the file name and his path
             // First, get title information
-            artist = titleToExport.getArtist().replace("/","-").replace("?"," ");
-            album = titleToExport.getAlbum().replace("/","-").replace("?"," ");
-            titleName = titleToExport.getTitle().replace("/","-").replace("?"," ");
+            artist = toSafeFileName(titleToExport.getArtist());
+            album = toSafeFileName(titleToExport.getAlbum());
+            titleName = toSafeFileName(titleToExport.getTitle());
             trackNumber = titleToExport.getTitleNumber();
 
             // Build directory to copy name (artist)
