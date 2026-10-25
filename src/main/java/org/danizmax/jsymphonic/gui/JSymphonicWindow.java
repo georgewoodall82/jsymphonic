@@ -124,6 +124,7 @@ public class JSymphonicWindow extends javax.swing.JFrame {
 
         try {
             initComponents();
+            setTitle(com.pipasoft.jsymphonic.Version.getNameAndVersion()); // the title in the form has no version
             mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.X_AXIS));
             localTabbedPane = new JTabbedPane();
             localPanel = new LocalPanel();
@@ -433,7 +434,7 @@ public class JSymphonicWindow extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("localization/misc"); // NOI18N
-        setTitle(bundle.getString("global.version")); // NOI18N
+        setTitle("JSymphonic"); // NOI18N
         setIconImage(ResourceLoader.getIcon("js_logo55.png").getImage());
         setMinimumSize(new java.awt.Dimension(640, 480));
         setName("Form"); // NOI18N
@@ -751,7 +752,7 @@ private void importButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
 private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
     JSymphonicAbout ab = new JSymphonicAbout(
     		java.util.ResourceBundle.getBundle("localization/jsymphonicwindow").getString("JSymphonicWindow.About_JSymphonic"), 
-    		java.util.ResourceBundle.getBundle("localization/misc").getString("global.version"),
+    		com.pipasoft.jsymphonic.Version.getNameAndVersion(),
     		java.util.ResourceBundle.getBundle("localization/jsymphonicwindow").getString("JSymphonicWindow.Thanks_for_using"), 
     		java.util.ResourceBundle.getBundle("localization/jsymphonicwindow").getString("JSymphonicWindow.The_JSymphonic_team"));
     ab.setLocationRelativeTo(this);

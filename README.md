@@ -26,3 +26,8 @@ Any new files I add will be in https://github.com/brianpipa/jsymphonic/tree/main
 
 ## Documentation
 How the NW-A80x/A82x database is built, what SonicStage writes and what the player checks (Simple Mode, incompatible database, album art) is documented in [docs/reverse-engineering](docs/reverse-engineering/README.md), with tools to dump and check an `OMGAUDIO` folder.
+
+## Making a release
+1. Change `<version>` in `pom.xml`. That is the only place the version is written: Maven copies it into `version.properties`, which the window title and the About dialog read.
+2. Add a `<release>` entry to `io.github.georgewoodall82.jsymphonic.metainfo.xml` (the list of releases shown by software centers and Flathub).
+3. Run `mvn package`, rename `target/jsymphonic-*-jar-with-dependencies.jar` to `jsymphonic-X.Y.Z.jar` and attach it to a GitHub release tagged `X.Y.Z`.
