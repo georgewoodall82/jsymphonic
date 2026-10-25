@@ -30,6 +30,8 @@
   </branding>
 
   <releases>
+    <release version="0.7.0" date="2026-10-25">
+    </release>
     <release version="0.5.3" date="2024-07-16">
     </release>
     <release version="0.5.2" date="2024-07-15">
