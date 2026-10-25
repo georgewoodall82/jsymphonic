@@ -23,3 +23,6 @@ mvn package
 Once that's done, it that will create target/jsymphonic-*-jar-with-dependencies.jar which is your runnable jar
 
 Any new files I add will be in https://github.com/brianpipa/jsymphonic/tree/main/src/main/java/com/pipasoft/jsymphonic I did add ResourceLoader.java to centralize the loading of the icon images.
+
+## Documentation
+How the NW-A80x/A82x database is built, what SonicStage writes and what the player checks (Simple Mode, incompatible database, album art) is documented in [docs/reverse-engineering](docs/reverse-engineering/README.md), with tools to dump and check an `OMGAUDIO` folder.
