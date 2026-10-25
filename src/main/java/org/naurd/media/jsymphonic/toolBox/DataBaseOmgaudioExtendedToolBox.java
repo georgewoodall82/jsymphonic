@@ -33,8 +33,11 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import org.naurd.media.jsymphonic.title.Oma;
 import org.naurd.media.jsymphonic.title.Title;
@@ -83,15 +86,25 @@ public class DataBaseOmgaudioExtendedToolBox {
         {"MACLIST0.DAT", 0x8000}, {"MACLIST0.BAK", 0x8000}, {"ACTIVITY.DAT", 0x280000}, {"RESERVED.DAT", 0x400000}
     };
 
+    // Trees filled in by the device (bookmarks, history, top 100 and recent transfers) and by SonicStage (playlists), kept when the database is rewritten
+    private static final String[] KEPT_TREES = {"10", "11", "12", "13", "14", "15", "22", "2D", "2E", "35"};
+
     // Album thumbnails of tree 36, as written by SonicStage: the big picture (PICP tag) then the small ones (PIC0 tag)
     private static final int[] THUMBNAIL_SIZES = {200, 96, 32};
     private static final String[] THUMBNAIL_SUFFIXES = {"P0", "01", "02"};
+    private static final String THUMBNAIL_FILES = "(?i)JM[0-9A-F]{4}(P0|01|02)\\.JPG";
 
     // Mount log, holding the modification time of 01TREE01.DAT and 04CNTINF.DAT
     private static final String MOUNT_LOG = "AFMNTLOG.DAT";
     private static final int MOUNT_LOG_SIZE = 0x10c0;
     private static final int MOUNT_LOG_TIMES = 0x40; // Position of the two times in the DTBL class
-    private static final int MOUNT_LOG_BASIC_TREE = 0xd0; // Position of the first element of the MLBL class
+    private static final int MOUNT_LOG_FUNCTIONS = 0xd0; // Position of the first element of the MLBL class
+    // Elements of the MLBL class written by SonicStage (Kana, ActivityLog and LatestTrans). The others are written by the device (Bookmark and DelBookmark) or not used (ArtistLink)
+    private static final int[] MOUNT_LOG_PC_FUNCTIONS = {1, 3, 4};
+
+    // Tree change log, holding the modification time of the trees written by SonicStage
+    private static final String TREE_CHANGE_LOG = "07GTCHLG.DAT";
+    private static final int[] TREE_CHANGE_LOG_TREES = {0x02, 0x03, 0x04, 0x36};
 
     // Extended content info written by SonicStage in A_WM: one element per title ID, starting with the element of the title in 05CIDLST
     private static final String CONTENT_INFO = "EXCNTINF.DAT"; // Rating of the titles
@@ -144,6 +157,16 @@ public class DataBaseOmgaudioExtendedToolBox {
             this.tagValues = tagValues;
             this.firstTitle = firstTitle;
         }
+    }
+
+    /**
+     * What is kept from the database on the device before it is rewritten.
+     */
+    public static class OldDatabase {
+        private Map<String, byte[][]> trees = new HashMap<String, byte[][]>(); // Tree ID -> content of its 01TREEXX and 03GINFXX files
+        private Map<Integer, byte[]> contentIds = new HashMap<Integer, byte[]>(); // Title ID -> start of its element in 05CIDLST
+        private Map<Integer, Object[]> titles = new HashMap<Integer, Object[]>(); // Title ID -> name and length in 04CNTINF
+        private Map<Integer, String[]> pictures = new HashMap<Integer, String[]>(); // Title ID -> PICP and PIC0 tags of its album in tree 36
     }
 
     private static final Labeler GENRE = new Labeler() { public String label(Title t) { return clean(t.getGenre()); } };
@@ -234,18 +257,18 @@ public class DataBaseOmgaudioExtendedToolBox {
             int key = globalKey;
             switch (i) {
                 case 0x01: case 0x02: case 0x03: case 0x04: name = ""; break;
-                case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: name = "AR_BOKMK" + (i - 0x0F) + "_PL"; key = 0; break;
-                case 0x15: name = "AR_DELBOK_PL"; key = 0; break;
-                case 0x22: name = ""; key = 0; break;
-                case 0x2D: name = "AR_HISTORY_PL"; key = 0; break;
-                case 0x2E: name = "AR_TOP100_PL"; key = 0; break;
+                case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: name = "AR_BOKMK" + (i - 0x0F) + "_PL"; key = keptTreeKey(omgaudioDir, i); break;
+                case 0x15: name = "AR_DELBOK_PL"; key = keptTreeKey(omgaudioDir, i); break;
+                case 0x22: name = ""; key = keptTreeKey(omgaudioDir, i); break;
+                case 0x2D: name = "AR_HISTORY_PL"; key = keptTreeKey(omgaudioDir, i); break;
+                case 0x2E: name = "AR_TOP100_PL"; key = keptTreeKey(omgaudioDir, i); break;
                 case 0x2F: name = "AR_RATE_DB"; break;
                 case 0x30: name = "AR_TCON_DB_JPN"; break;
                 case 0x31: name = "AR_TYER_DB_JPN"; break;
                 case 0x32: name = "AR_ITRCK_DB_JPN"; break;
                 case 0x33: name = "AR_ITPE1_DB_JPN"; break;
                 case 0x34: name = "AR_ITALB_DB_JPN"; break;
-                case 0x35: name = "AR_LSTTRN_DB"; key = 0; break;
+                case 0x35: name = "AR_LSTTRN_DB"; key = keptTreeKey(omgaudioDir, i); break;
                 case 0x36: name = "STD_TPE1_THUMBNAIL"; break;
                 default: name = null;
             }
@@ -262,13 +285,38 @@ public class DataBaseOmgaudioExtendedToolBox {
     }
 
     /**
+     * Gives the key of a tree filled in by the device in 02TREINF: the sum of the keys of its groups having titles (the
+     * sum of the length of their titles), as SonicStage does. The tree must have been written.
+     */
+    private static int keptTreeKey(File omgaudioDir, int treeId) {
+        byte[] tree = readFile(findFile(omgaudioDir, String.format("01TREE%02X.DAT", treeId)));
+        byte[] ginf = readFile(findFile(omgaudioDir, String.format("03GINF%02X.DAT", treeId)));
+        List<int[]> groups = readGroups(tree, ginf);
+        if (groups == null) {
+            return 0;
+        }
+        int[] gpfb = classInfo(ginf, 0, "GPIF", -1);
+        int key = 0;
+        for (int[] group : groups) {
+            if (group[1] > 0 && group[2] > 0) {
+                int position = ginfElement(gpfb, group[0]) + 8;
+                key += bytes2int(Arrays.copyOfRange(ginf, position, position + 4));
+            }
+        }
+        return key;
+    }
+
+    /**
      * Write the trees which only exist in the extended database (10 to 15, 2D to 36) in OMGAUDIO folder.
      *
      * @param omgaudioDir Instance of the OMGAUDIO folder where to write the files.
      * @param titles Map of the titles in the database (titles as keys, title IDs as values).
      * @throws Exception
      */
-    public static void writeExtendedTrees(File omgaudioDir, Map titles) throws Exception {
+    public static void writeExtendedTrees(File omgaudioDir, JSymphonicMap titles, OldDatabase oldDatabase) throws Exception {
+        if (oldDatabase == null) {
+            oldDatabase = new OldDatabase();
+        }
         List<Title> allTitles = new ArrayList<Title>();
         for (Object title : titles.keySet()) {
             if (title != null) {
@@ -276,17 +324,28 @@ public class DataBaseOmgaudioExtendedToolBox {
             }
         }
 
+        // Playlists, written by SonicStage (the base database only has an empty tree)
+        writeKeptTree(omgaudioDir, "22", oldDatabase, titles);
+
         // History, filled in by the device
-        writeTree(omgaudioDir, "2D", TAGS_TITLE, new ArrayList<Group>(), new ArrayList<Integer>());
+        if (!writeKeptTree(omgaudioDir, "2D", oldDatabase, titles)) {
+            writeTree(omgaudioDir, "2D", TAGS_TITLE, new ArrayList<Group>(), new ArrayList<Integer>());
+        }
 
         // Bookmarks, filled in by the device
         for (int i = 1; i <= 5; i++) {
-            writeTree(omgaudioDir, "1" + (i - 1), TAGS_TITLE, singleEmptyGroup("Bookmark " + i), new ArrayList<Integer>());
+            if (!writeKeptTree(omgaudioDir, "1" + (i - 1), oldDatabase, titles)) {
+                writeTree(omgaudioDir, "1" + (i - 1), TAGS_TITLE, singleEmptyGroup("Bookmark " + i), new ArrayList<Integer>());
+            }
         }
-        writeTree(omgaudioDir, "15", TAGS_TITLE, singleEmptyGroup("Delete Bookmark"), new ArrayList<Integer>());
+        if (!writeKeptTree(omgaudioDir, "15", oldDatabase, titles)) {
+            writeTree(omgaudioDir, "15", TAGS_TITLE, singleEmptyGroup("Delete Bookmark"), new ArrayList<Integer>());
+        }
 
         // Top 100, filled in by the device
-        writeTree(omgaudioDir, "2E", TAGS_TITLE, singleEmptyGroup("TOP100"), new ArrayList<Integer>());
+        if (!writeKeptTree(omgaudioDir, "2E", oldDatabase, titles)) {
+            writeTree(omgaudioDir, "2E", TAGS_TITLE, singleEmptyGroup("TOP100"), new ArrayList<Integer>());
+        }
 
         // Ratings: 5 stars to 1 star, then the unrated titles, with the ratings kept by SonicStage in EXCNTINF
         List<Group> groups = new ArrayList<Group>();
@@ -333,12 +392,14 @@ public class DataBaseOmgaudioExtendedToolBox {
             new Level(ALBUM, ALBUM, true, null)});
 
         // Recent transfers, filled in by the device
-        groups = new ArrayList<Group>();
-        String[] recents = {"3rd Recent", "2nd Recent", "Most Recent"};
-        for (String recent : recents) {
-            groups.add(new Group(1, 0, new String[]{recent, ""}, 0));
+        if (!writeKeptTree(omgaudioDir, "35", oldDatabase, titles)) {
+            groups = new ArrayList<Group>();
+            String[] recents = {"3rd Recent", "2nd Recent", "Most Recent"};
+            for (String recent : recents) {
+                groups.add(new Group(1, 0, new String[]{recent, ""}, 0));
+            }
+            writeTree(omgaudioDir, "35", TAGS_TITLE_SORT, groups, new ArrayList<Integer>());
         }
-        writeTree(omgaudioDir, "35", TAGS_TITLE_SORT, groups, new ArrayList<Integer>());
 
         // Artist > Album (with thumbnails), the first group is empty as in the databases written by SonicStage
         groups = new ArrayList<Group>();
@@ -346,31 +407,432 @@ public class DataBaseOmgaudioExtendedToolBox {
         groups.add(new Group(1, 0, new String[]{"", "", "", ""}, 0));
         Level[] levels = {new Level(ARTIST, ARTIST, true, null), new Level(ALBUM, ALBUM, true, null)};
         addGroups(groups, titleIds, sort(allTitles, levels), levels, 0, TAGS_TITLE_PICTURES_SORT, titles);
-        // Album thumbnails, from the cover of the titles
+        // Album thumbnails: the ones already on the device are kept (SonicStage only stores them there), the others are made from the cover of the titles
+        Set<String> usedPictures = new HashSet<String>();
+        String[][] pictures = new String[groups.size()][];
         for (int i = 0; i < groups.size(); i++) {
             Group group = groups.get(i);
             if (group.titles != null) {
-                String[] pictures = writeAlbumThumbnails(omgaudioDir, i + 1, group.titles);
-                if (pictures != null) {
-                    group.tagValues[1] = pictures[0]; // PICP
-                    group.tagValues[2] = pictures[1]; // PIC0
+                pictures[i] = keptPictures(omgaudioDir, group.titles, oldDatabase, titles);
+                if (pictures[i] != null) {
+                    usedPictures.addAll(pictureFiles(pictures[i]));
                 }
             }
         }
+        for (int i = 0; i < groups.size(); i++) {
+            Group group = groups.get(i);
+            if (group.titles != null && pictures[i] == null) {
+                // Named after the lowest title ID of the album, so that the names don't change when other albums are added or removed
+                int fileId = 0xFFFF;
+                for (Title title : group.titles) {
+                    fileId = Math.min(fileId, (Integer) titles.get(title));
+                }
+                pictures[i] = writeAlbumThumbnails(omgaudioDir, fileId, group.titles, usedPictures);
+            }
+            if (pictures[i] != null) {
+                group.tagValues[1] = pictures[i][0]; // PICP
+                group.tagValues[2] = pictures[i][1]; // PIC0
+            }
+        }
         writeTree(omgaudioDir, "36", TAGS_TITLE_PICTURES_SORT, groups, titleIds);
+        deleteUnusedThumbnails(omgaudioDir, usedPictures);
+    }
+
+    /**
+     * Read what is kept from the database on the device, before it is rewritten.
+     *
+     * @param omgaudioDir Instance of the OMGAUDIO folder.
+     * @return The trees filled in by the device and the playlists, with what is needed to update them.
+     */
+    public static OldDatabase readOldDatabase(File omgaudioDir) {
+        OldDatabase oldDatabase = new OldDatabase();
+        oldDatabase.titles = read04CNTINF(omgaudioDir);
+
+        byte[] cidlst = readFile(findFile(omgaudioDir, "05CIDLST.DAT"));
+        int[] elements = classInfo(cidlst, 0, "CIDL", 0x30);
+        if (elements != null) {
+            for (int i = 0; i < elements[1]; i++) {
+                oldDatabase.contentIds.put(i + 1, Arrays.copyOfRange(cidlst, elements[0] + i*0x30, elements[0] + i*0x30 + 0x18));
+            }
+        }
+
+        for (String treeId : KEPT_TREES) {
+            byte[] tree = readFile(findFile(omgaudioDir, "01TREE" + treeId + ".DAT"));
+            byte[] ginf = readFile(findFile(omgaudioDir, "03GINF" + treeId + ".DAT"));
+            if (readGroups(tree, ginf) != null) {
+                oldDatabase.trees.put(treeId, new byte[][]{tree, ginf});
+            }
+        }
+
+        // Thumbnails of the albums of tree 36, for each of their titles
+        byte[] tree = readFile(findFile(omgaudioDir, "01TREE36.DAT"));
+        byte[] ginf = readFile(findFile(omgaudioDir, "03GINF36.DAT"));
+        List<int[]> groups = readGroups(tree, ginf);
+        if (groups != null) {
+            int[] tplb = classInfo(tree, 1, "TREE", 0x2);
+            int[] gpfb = classInfo(ginf, 0, "GPIF", -1);
+            for (int i = 0; i < groups.size(); i++) {
+                int[] group = groups.get(i);
+                int start = ginfElement(gpfb, group[0]);
+                String picp = tagValue(ginf, start, gpfb[2], "PICP");
+                if (group[2] == 0 || picp.length() == 0) {
+                    continue;
+                }
+                String[] pictures = {picp, tagValue(ginf, start, gpfb[2], "PIC0")};
+                for (int titleId : groupTitles(tree, tplb, groups, i)) {
+                    oldDatabase.pictures.put(titleId, pictures);
+                }
+            }
+        }
+        return oldDatabase;
+    }
+
+    /**
+     * Write a tree filled in by the device as it was before the database was rewritten, without the titles which
+     * aren't on the device any more. As SonicStage does, the groups left without titles are kept at the end of the
+     * groups, with a level of 0, and the key of the groups (the sum of the length of their titles) is updated.
+     *
+     * @return True if the tree has been written, false if there was no valid tree on the device.
+     */
+    private static boolean writeKeptTree(File omgaudioDir, String treeId, OldDatabase oldDatabase, JSymphonicMap titles) throws IOException {
+        byte[][] files = oldDatabase.trees.get(treeId);
+        if (files == null) {
+            return false;
+        }
+        byte[] tree = files[0];
+        byte[] ginf = files[1].clone();
+        List<int[]> groups = readGroups(tree, ginf); // {ID in 03GINFXX, level, first title}
+        int[] gplb = classInfo(tree, 0, "TREE", 0x8);
+        int[] tplb = classInfo(tree, 1, "TREE", 0x2);
+        int[] gpfb = classInfo(ginf, 0, "GPIF", -1);
+
+        // Remove the titles which aren't on the device any more
+        boolean changed = false;
+        int maxLevel = 0;
+        List<List<Integer>> titlesOfGroups = new ArrayList<List<Integer>>();
+        for (int i = 0; i < groups.size(); i++) {
+            maxLevel = Math.max(maxLevel, groups.get(i)[1]);
+            List<Integer> titlesOfGroup = new ArrayList<Integer>();
+            int removedLength = 0;
+            for (int titleId : groupTitles(tree, tplb, groups, i)) {
+                if (isSameTitle(titleId, oldDatabase, titles)) {
+                    titlesOfGroup.add(titleId);
+                } else {
+                    Object[] oldTitle = oldDatabase.titles.get(titleId);
+                    removedLength += oldTitle == null ? 0 : (Integer) oldTitle[1];
+                    changed = true;
+                }
+            }
+            if (removedLength > 0) {
+                int key = ginfElement(gpfb, groups.get(i)[0]) + 8;
+                int newKey = Math.max(0, (int) bytes2int(Arrays.copyOfRange(ginf, key, key + 4)) - removedLength);
+                System.arraycopy(int2bytes(newKey, 4), 0, ginf, key, 4);
+            }
+            titlesOfGroups.add(titlesOfGroup);
+        }
+
+        File treeFile = findFile(omgaudioDir, "01TREE" + treeId + ".DAT");
+        File ginfFile = findFile(omgaudioDir, "03GINF" + treeId + ".DAT");
+        if (!changed) {
+            writeFile(treeFile, tree);
+            writeFile(ginfFile, ginf);
+            return true;
+        }
+
+        // In the trees with several levels, the groups left without titles are removed, then their parents left without groups
+        boolean[] active = new boolean[groups.size()];
+        for (int i = 0; i < groups.size(); i++) {
+            int[] group = groups.get(i);
+            active[i] = group[1] > 0 && !(maxLevel > 1 && group[2] > 0 && titlesOfGroups.get(i).isEmpty());
+        }
+        for (int level = maxLevel - 1; level >= 1 && !treeId.equals("35"); level--) { // The groups of the recent transfers are always displayed
+            for (int i = 0; i < groups.size(); i++) {
+                if (groups.get(i)[1] != level || groups.get(i)[2] > 0) {
+                    continue;
+                }
+                boolean hadChildren = false, hasChildren = false;
+                for (int j = i + 1; j < groups.size() && groups.get(j)[1] > level; j++) {
+                    hadChildren = true;
+                    hasChildren |= active[j];
+                }
+                if (hadChildren && !hasChildren) {
+                    active[i] = false;
+                }
+            }
+        }
+
+        // Active groups first, in their order, then the others
+        List<Integer> order = new ArrayList<Integer>();
+        int numberOfActiveGroups = 0;
+        for (int i = 0; i < groups.size(); i++) {
+            if (active[i]) {
+                order.add(i);
+                numberOfActiveGroups++;
+            }
+        }
+        for (int i = 0; i < groups.size(); i++) {
+            if (!active[i]) {
+                order.add(i);
+            }
+        }
+
+        List<Integer> titleIds = new ArrayList<Integer>();
+        int tplbLength = 0x10 + roundUp16(countTitles(titlesOfGroups)*0x2);
+        RandomAccessFile raf = new RandomAccessFile(treeFile, "rw");
+        try {
+            raf.setLength(0);
+            WriteTableHeader(raf, "TREE", 2);
+            WriteClassDescription(raf, "GPLB", 0x30, gplb[3]);
+            WriteClassDescription(raf, "TPLB", 0x30 + gplb[3], tplbLength);
+            WriteClassHeader(raf, "GPLB", groups.size(), 0x8, numberOfActiveGroups, 0);
+            for (int i : order) {
+                List<Integer> titlesOfGroup = titlesOfGroups.get(i);
+                raf.write(int2bytes(groups.get(i)[0], 2));
+                raf.write(active[i] ? groups.get(i)[1] : 0);
+                raf.write(0);
+                raf.write(int2bytes(active[i] && !titlesOfGroup.isEmpty() ? titleIds.size() + 1 : 0, 2));
+                WriteZeros(raf, 2);
+                if (active[i]) {
+                    titleIds.addAll(titlesOfGroup);
+                }
+            }
+            WriteZeros(raf, gplb[3] - 0x10 - groups.size()*0x8);
+            WriteClassHeader(raf, "TPLB", titleIds.size(), 0x2, titleIds.size(), 0);
+            for (int titleId : titleIds) {
+                raf.write(int2bytes(titleId, 2));
+            }
+            WriteZeros(raf, tplbLength - 0x10 - titleIds.size()*0x2);
+        } finally {
+            raf.close();
+        }
+        writeFile(ginfFile, ginf);
+        return true;
+    }
+
+    /**
+     * Tells if a title ID of the database on the device still refers to the same title (the title hasn't been deleted,
+     * and its ID hasn't been given to a new title).
+     */
+    private static boolean isSameTitle(int titleId, OldDatabase oldDatabase, JSymphonicMap titles) {
+        Title title = (Title) titles.getKey(titleId);
+        if (title == null) {
+            return false;
+        }
+        byte[] oldContentId = oldDatabase.contentIds.get(titleId);
+        return oldContentId == null || isZero(oldContentId) || Arrays.equals(oldContentId, Arrays.copyOf(contentIdOf(title), oldContentId.length));
+    }
+
+    /**
+     * Read the groups of a tree, in their order.
+     *
+     * @return For each group, its ID in 03GINFXX, its level and the index of its first title in the TPLB class. Null if the files aren't valid.
+     */
+    private static List<int[]> readGroups(byte[] tree, byte[] ginf) {
+        int[] gplb = classInfo(tree, 0, "TREE", 0x8);
+        int[] tplb = classInfo(tree, 1, "TREE", 0x2);
+        int[] gpfb = classInfo(ginf, 0, "GPIF", -1);
+        if (gplb == null || tplb == null || gpfb == null) {
+            return null;
+        }
+        List<int[]> groups = new ArrayList<int[]>();
+        for (int i = 0; i < gplb[1]; i++) {
+            int position = gplb[0] + i*0x8;
+            int[] group = {(int) bytes2int(Arrays.copyOfRange(tree, position, position + 2)), tree[position + 2] & 0xff,
+                (int) bytes2int(Arrays.copyOfRange(tree, position + 4, position + 6))};
+            if (group[0] < 1 || group[0] > gpfb[1] || group[2] > tplb[1]) {
+                return null;
+            }
+            groups.add(group);
+        }
+        return groups;
+    }
+
+    /**
+     * Gives the title IDs of a group of a tree: from its first title to the first title of the next group having titles.
+     */
+    private static List<Integer> groupTitles(byte[] tree, int[] tplb, List<int[]> groups, int index) {
+        List<Integer> titleIds = new ArrayList<Integer>();
+        int first = groups.get(index)[2];
+        if (first == 0) {
+            return titleIds;
+        }
+        int end = tplb[1] + 1;
+        for (int[] group : groups) {
+            if (group[2] > first && group[2] < end) {
+                end = group[2];
+            }
+        }
+        for (int i = first; i < end; i++) {
+            int position = tplb[0] + (i - 1)*0x2;
+            titleIds.add((int) bytes2int(Arrays.copyOfRange(tree, position, position + 2)));
+        }
+        return titleIds;
+    }
+
+    private static int countTitles(List<List<Integer>> titlesOfGroups) {
+        int count = 0;
+        for (List<Integer> titlesOfGroup : titlesOfGroups) {
+            count += titlesOfGroup.size();
+        }
+        return count;
+    }
+
+    /**
+     * Gives the position of a class in a file of the database.
+     *
+     * @param file The content of the file.
+     * @param classIndex The index of the class in the file.
+     * @param tableName The expected name of the table.
+     * @param elementLength The expected length of the elements, -1 if any.
+     * @return The position of the first element, the number of elements, their length and the length of the class. Null if the file isn't valid.
+     */
+    private static int[] classInfo(byte[] file, int classIndex, String tableName, int elementLength) {
+        if (file == null || file.length < 0x20 + classIndex*0x10 || !new String(file, 0, 4).equals(tableName) || (file[8] & 0xff) <= classIndex) {
+            return null;
+        }
+        int description = 0x10 + classIndex*0x10;
+        int offset = (int) bytes2int(Arrays.copyOfRange(file, description + 4, description + 8));
+        int classLength = (int) bytes2int(Arrays.copyOfRange(file, description + 8, description + 12));
+        if (offset < 0 || offset + 0x10 > file.length) {
+            return null;
+        }
+        int count = (int) bytes2int(Arrays.copyOfRange(file, offset + 4, offset + 6));
+        int length = (int) bytes2int(Arrays.copyOfRange(file, offset + 6, offset + 8));
+        if ((elementLength >= 0 && length != elementLength) || offset + 0x10 + (long) count*length > file.length) {
+            return null;
+        }
+        return new int[]{offset + 0x10, count, length, classLength};
+    }
+
+    /**
+     * Gives the position of an element of the GPFB class of a 03GINFXX file, from its ID (starting at 1).
+     */
+    private static int ginfElement(int[] gpfb, int id) {
+        return gpfb[0] + (id - 1)*gpfb[2];
+    }
+
+    /**
+     * Gives the value of a tag in an element of a 03GINFXX file, an empty string if the element doesn't have the tag.
+     */
+    private static String tagValue(byte[] ginf, int element, int elementLength, String tagName) {
+        for (int position = element + 0x10; position + 0x80 <= element + elementLength; position += 0x80) {
+            if (new String(ginf, position, 4).equals(tagName)) {
+                try {
+                    return new String(ginf, position + 6, 0x7a, "UTF-16BE").replace("" + (char) 0, "");
+                } catch (IOException ex) {
+                    return "";
+                }
+            }
+        }
+        return "";
+    }
+
+    /**
+     * Gives the thumbnails which were on the device for the album of some titles, if their files still exist.
+     *
+     * @return The values of the PICP and PIC0 tags, or null if there were no thumbnails.
+     */
+    private static String[] keptPictures(File omgaudioDir, List<Title> titlesOfAlbum, OldDatabase oldDatabase, JSymphonicMap titles) {
+        for (Title title : titlesOfAlbum) {
+            Integer titleId = (Integer) titles.get(title);
+            String[] pictures = titleId == null ? null : oldDatabase.pictures.get(titleId);
+            if (pictures == null || !isSameTitle(titleId, oldDatabase, titles)) {
+                continue;
+            }
+            boolean exist = true;
+            for (String picture : pictureFiles(pictures)) {
+                String[] path = picture.split("\\\\");
+                exist &= path.length == 2 && findFile(findFile(omgaudioDir, path[0]), path[1]).isFile();
+            }
+            if (exist) {
+                return pictures;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gives the files referred to by the PICP and PIC0 tags of an album ("200200;20P01\JM0001P0.JPG" for instance), in upper case.
+     */
+    private static Set<String> pictureFiles(String[] pictures) {
+        Set<String> files = new HashSet<String>();
+        for (String tag : pictures) {
+            for (String picture : tag.split("\\|")) {
+                if (picture.contains(";")) {
+                    files.add(picture.substring(picture.indexOf(';') + 1).toUpperCase());
+                }
+            }
+        }
+        return files;
+    }
+
+    /**
+     * Delete the album thumbnails which aren't used by tree 36 any more, and the 20PXX folders left empty.
+     */
+    private static void deleteUnusedThumbnails(File omgaudioDir, Set<String> usedPictures) {
+        File[] folders = omgaudioDir.listFiles();
+        if (folders == null) {
+            return;
+        }
+        for (File folder : folders) {
+            if (!folder.isDirectory() || !folder.getName().matches("(?i)20P[0-9A-F]{2}")) {
+                continue;
+            }
+            File[] files = folder.listFiles();
+            for (File file : files == null ? new File[0] : files) {
+                if (file.getName().matches(THUMBNAIL_FILES) && !usedPictures.contains((folder.getName() + "\\" + file.getName()).toUpperCase())) {
+                    if (!file.delete()) {
+                        logger.warning("Cannot delete unused album thumbnail " + file.getPath());
+                    }
+                }
+            }
+            String[] left = folder.list();
+            if (left != null && left.length == 0) {
+                folder.delete();
+            }
+        }
+    }
+
+    private static byte[] readFile(File file) {
+        if (!file.isFile()) {
+            return null;
+        }
+        try {
+            RandomAccessFile raf = new RandomAccessFile(file, "r");
+            try {
+                byte[] content = new byte[(int) raf.length()];
+                raf.readFully(content);
+                return content;
+            } finally {
+                raf.close();
+            }
+        } catch (IOException ex) {
+            logger.warning("Cannot read " + file.getPath() + ": " + ex.getMessage());
+            return null;
+        }
+    }
+
+    private static void writeFile(File file, byte[] content) throws IOException {
+        FileOutputStream out = new FileOutputStream(file);
+        try {
+            out.write(content);
+        } finally {
+            out.close();
+        }
     }
 
     /**
      * Write the thumbnails of an album of tree 36 in a 20PXX folder, from the cover of its first title having one.
-     * As SonicStage does, the files are named after the ID of the group in 03GINF36: JMxxxxP0.JPG (200x200),
-     * JMxxxx01.JPG (96x96) and JMxxxx02.JPG (32x32).
+     * As SonicStage does, the files are named after an ID: JMxxxxP0.JPG (200x200), JMxxxx01.JPG (96x96) and
+     * JMxxxx02.JPG (32x32). If these files are used by another album, the next free ID is used.
      *
      * @param omgaudioDir Instance of the OMGAUDIO folder.
-     * @param groupId ID of the album group in 03GINF36.
+     * @param groupId The ID to name the files after.
      * @param titles Titles of the album.
+     * @param usedPictures The files used by the other albums ("20PXX\JMXXXXP0.JPG" for instance), the files written are added.
      * @return The values of the PICP and PIC0 tags, or null if no thumbnail has been written.
      */
-    private static String[] writeAlbumThumbnails(File omgaudioDir, int groupId, List<Title> titles) {
+    private static String[] writeAlbumThumbnails(File omgaudioDir, int groupId, List<Title> titles, Set<String> usedPictures) {
         byte[] cover = null;
         for (Title title : titles) {
             cover = CoverArtToolBox.readCover(title.getCoverFile());
@@ -382,7 +844,11 @@ public class DataBaseOmgaudioExtendedToolBox {
             return null;
         }
 
-        String folderName = String.format("20P%02X", groupId % 0x20);
+        int fileId = groupId;
+        while (fileId < 0xFFFF && isUsed(fileId, usedPictures)) {
+            fileId++;
+        }
+        String folderName = String.format("20P%02X", fileId % 0x20);
         File folder = findFile(omgaudioDir, folderName);
         if (!folder.exists() && !folder.mkdir()) {
             logger.warning("Cannot create folder " + folder.getPath() + " for album thumbnails.");
@@ -396,7 +862,7 @@ public class DataBaseOmgaudioExtendedToolBox {
             if (jpeg == null) {
                 return null;
             }
-            String fileName = String.format("JM%04X%s.JPG", groupId, THUMBNAIL_SUFFIXES[i]);
+            String fileName = String.format("JM%04X%s.JPG", fileId, THUMBNAIL_SUFFIXES[i]);
             try {
                 FileOutputStream out = new FileOutputStream(findFile(folder, fileName));
                 try {
@@ -415,7 +881,21 @@ public class DataBaseOmgaudioExtendedToolBox {
         for (int i = 2; i < values.length; i++) {
             smallPictures += "|" + values[i];
         }
-        return new String[]{values[0], smallPictures};
+        String[] pictures = {values[0], smallPictures};
+        usedPictures.addAll(pictureFiles(pictures));
+        return pictures;
+    }
+
+    /**
+     * Tells if the thumbnail files of an ID are used by an album.
+     */
+    private static boolean isUsed(int fileId, Set<String> usedPictures) {
+        for (String suffix : THUMBNAIL_SUFFIXES) {
+            if (usedPictures.contains(String.format("20P%02X\\JM%04X%s.JPG", fileId % 0x20, fileId, suffix))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -566,13 +1046,33 @@ public class DataBaseOmgaudioExtendedToolBox {
     }
 
     /**
-     * Gives the start of the element of a title in 05CIDLST: the content ID written by SonicStage, or zeros.
+     * Give a content ID to the OMA files on the device which have none (files transfered by older versions of
+     * JSymphonic). SonicStage gives one to each file, and all the titles would share the same one otherwise.
+     *
+     * @param titles Map of the titles in the database (titles as keys, title IDs as values).
+     */
+    public static void writeMissingContentIds(JSymphonicMap titles) {
+        int numberOfTitles = titles.isEmpty() ? 0 : titles.maxValue();
+        for (int i = 1; i <= numberOfTitles; i++) {
+            Title title = (Title) titles.getKey(i);
+            if (!(title instanceof Oma) || ((Oma) title).getDrm() != Oma.NO_DRM || !isZero(title.getContentId())
+                    || title.getSourceFile() == null || !title.getSourceFile().exists()) {
+                continue;
+            }
+            byte[] contentId = Oma.newContentId();
+            if (Oma.writeContentId(title.getSourceFile(), contentId)) {
+                title.setContentId(contentId);
+            }
+        }
+    }
+
+    /**
+     * Gives the start of the element of a title in 05CIDLST: its DRM key or its content ID, or zeros.
      */
     private static byte[] contentIdOf(Title title) {
         byte[] contentId = new byte[CONTENT_ID_LENGTH];
-        if (title instanceof Oma) {
-            Oma oma = (Oma) title;
-            byte[] source = (oma.getDrm() == Oma.DRM_LSI) ? oma.getDrmKey() : oma.getContentId();
+        if (title != null) {
+            byte[] source = (title instanceof Oma && ((Oma) title).getDrm() == Oma.DRM_LSI) ? ((Oma) title).getDrmKey() : title.getContentId();
             System.arraycopy(source, 0, contentId, 0, Math.min(source.length, CONTENT_ID_LENGTH));
         }
         return contentId;
@@ -603,14 +1103,16 @@ public class DataBaseOmgaudioExtendedToolBox {
      *
      * When it starts, the device compares these times with the ones of the files. If the log is missing or if they
      * differ (because the database has been written by another program), it only enables its basic features and
-     * displays a "Simple Mode" message. It also checks that the first element of the MLBL class ("BasicTree") holds
-     * the time of 01TREE01.DAT, so it is written too. The other elements are written by SonicStage or the device, to
-     * remember which version of the database they have processed, and are kept as they are.
-     * The modification time of both files is set to the current time first, rounded to 2 seconds as stored by FAT
-     * file systems, so that the time read by the device is exactly the one written in the log.
+     * displays a "Simple Mode" message.
+     * The elements of the MLBL class tell which version of each function of the database has been processed, and when:
+     * SonicStage writes the ones of the functions it handles (version 1.0 and the time of 01TREE01.DAT), the device
+     * writes the others, which are kept as they are.
+     * The modification time of the files is set to the current time first, rounded to 2 seconds as stored by FAT
+     * file systems, so that the time read by the device is exactly the one written in the log. The tree change log
+     * (07GTCHLG.DAT) is written with the same time.
      *
      * @param omgaudioDir Instance of the OMGAUDIO folder.
-     * @param create True to create the log if it doesn't exist, false to only update an existing log.
+     * @param create True to create the logs if they don't exist, false to only update existing logs.
      * @throws Exception
      */
     public static void writeMountLog(File omgaudioDir, boolean create) throws Exception {
@@ -660,11 +1162,50 @@ public class DataBaseOmgaudioExtendedToolBox {
         try {
             raf.seek(MOUNT_LOG_TIMES);
             raf.write(times);
-            // First element of the MLBL class ("BasicTree"): written by SonicStage with the time of 01TREE01.DAT, the device also checks it
-            raf.seek(MOUNT_LOG_BASIC_TREE);
-            raf.write(1);
-            WriteZeros(raf, 7);
-            raf.write(times, 0, 8);
+            for (int function : MOUNT_LOG_PC_FUNCTIONS) {
+                // Version (major, minor), then the time
+                raf.seek(MOUNT_LOG_FUNCTIONS + (function - 1)*0x10);
+                raf.write(new byte[]{1, 0});
+                WriteZeros(raf, 6);
+                raf.write(times, 0, 8);
+            }
+        } finally {
+            raf.close();
+        }
+
+        writeTreeChangeLog(omgaudioDir, time, create);
+    }
+
+    /**
+     * Write the modification time of the trees in 07GTCHLG.DAT, as SonicStage does: one element per tree, with the tree
+     * ID (2 bytes), 6 zeros and the time.
+     */
+    private static void writeTreeChangeLog(File omgaudioDir, long time, boolean create) throws Exception {
+        File logFile = findFile(omgaudioDir, TREE_CHANGE_LOG);
+        if (!logFile.exists() && !create) {
+            return;
+        }
+
+        Map<Integer, File> treeFiles = new LinkedHashMap<Integer, File>();
+        for (int tree : TREE_CHANGE_LOG_TREES) {
+            File treeFile = findFile(omgaudioDir, String.format("01TREE%02X.DAT", tree));
+            if (treeFile.exists()) {
+                treeFile.setLastModified(time);
+                treeFiles.put(tree, treeFile);
+            }
+        }
+
+        RandomAccessFile raf = new RandomAccessFile(logFile, "rw");
+        try {
+            raf.setLength(0);
+            WriteTableHeader(raf, "GTCL", 1);
+            WriteClassDescription(raf, "BFCL", 0x20, 0x10 + treeFiles.size()*0x10);
+            WriteClassHeader(raf, "BFCL", treeFiles.size(), 0x10);
+            for (Map.Entry<Integer, File> treeFile : treeFiles.entrySet()) {
+                raf.write(int2bytes(treeFile.getKey(), 2));
+                WriteZeros(raf, 6);
+                raf.write(toBcdTime(treeFile.getValue().lastModified()));
+            }
         } finally {
             raf.close();
         }

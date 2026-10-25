@@ -29,8 +29,10 @@ package org.naurd.media.jsymphonic.toolBox;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -916,7 +918,7 @@ public class DataBaseOmgaudioToolBox {
      *
      *@param omgaudioDir Instance of the OMGAUDIO folder where to write the file.
      *@param titles
-     *@param writeContentIds True to write the content ID of the OMA files transfered by SonicStage, false to write zeros for these files.
+     *@param writeContentIds True to write the content ID of the OMA files, false to write zeros for these files.
      *
      *@throws Exception
      */
@@ -947,18 +949,15 @@ public class DataBaseOmgaudioToolBox {
             hasLSIdrm = false;
 
             if( titleTemp != null ) {
-                if(titleTemp instanceof Oma) {
-                    Oma oma = (Oma) titleTemp;
-                    if(oma.getDrm() == Oma.DRM_LSI){
-                        hasLSIdrm = true;
-                        rafTable5.write(oma.getDrmKey());
-                    }
-                    else if(writeContentIds && !isZero(oma.getContentId())){
-                        // Keep the content ID written by SonicStage
-                        hasLSIdrm = true;
-                        rafTable5.write(oma.getContentId());
-                        WriteZeros(rafTable5, 0x30 - oma.getContentId().length);
-                    }
+                if((titleTemp instanceof Oma) && (((Oma) titleTemp).getDrm() == Oma.DRM_LSI)) {
+                    hasLSIdrm = true;
+                    rafTable5.write(((Oma) titleTemp).getDrmKey());
+                }
+                else if(writeContentIds && !isZero(titleTemp.getContentId())){
+                    // Write the content ID of the OMA file
+                    hasLSIdrm = true;
+                    rafTable5.write(titleTemp.getContentId());
+                    WriteZeros(rafTable5, 0x30 - titleTemp.getContentId().length);
                 }
             }
 
@@ -1476,7 +1475,6 @@ public class DataBaseOmgaudioToolBox {
      */
     public static void WriteCNFBelement(RandomAccessFile raf, Title title, boolean gotKey) throws java.io.IOException {
         byte[] constant1 = {0,5,0,-128}; //-128 as a signed byte equals 128 as an unsigned byte equal 0x80 in hex
-        byte[] constant2 = {0,2};
         byte[] buffer2;
         String tag1 = "TIT2";
         String tag2 = "TPE1";
@@ -1535,10 +1533,48 @@ public class DataBaseOmgaudioToolBox {
         //Fourth sub-element
         WriteTag(raf, tag4, title.getGenre());
         
-        //Fifth sub-element
-        raf.write(tag5.getBytes());
-        raf.write(constant2);
-        WriteZeros(raf, 0x80 - 4 - 2);
+        //Fifth sub-element: the reading of the artist name, used by the device to sort the artists
+        WriteTag(raf, tag5, title.getArtistReading());
+    }
+
+    /**
+     * Read the length of the titles in the 04CNTINF file of an OMGAUDIO folder. SonicStage writes the exact length of the
+     * titles in this file, while the tags of the OMA files only hold a length rounded to the second.
+     *
+     * @param omgaudioDir Instance of the OMGAUDIO folder.
+     * @return For each title ID, its name and its length in milliseconds. Empty if the file doesn't exist or isn't valid.
+     */
+    public static Map<Integer, Object[]> read04CNTINF(File omgaudioDir) {
+        Map<Integer, Object[]> lengths = new HashMap<Integer, Object[]>();
+        File table4 = new File(omgaudioDir, "04CNTINF.DAT");
+        if(!table4.exists()){
+            return lengths;
+        }
+        try {
+            RandomAccessFile raf = new RandomAccessFile(table4, "r");
+            try {
+                byte[] header = new byte[0x30];
+                raf.readFully(header);
+                int numberOfElements = ((header[0x24] & 0xff) << 8) | (header[0x25] & 0xff);
+                int length = ((header[0x26] & 0xff) << 8) | (header[0x27] & 0xff);
+                if(!new String(header, 0, 4, "ISO-8859-1").equals("CNIF") || length != 0x290 || raf.length() < 0x30 + (long)numberOfElements*length){
+                    return lengths;
+                }
+                byte[] element = new byte[length];
+                for(int i = 1; i <= numberOfElements; i++){
+                    raf.readFully(element);
+                    // Title length (4 bytes at 0x08), then the TIT2 tag at 0x10
+                    int titleLength = ((element[8] & 0xff) << 24) | ((element[9] & 0xff) << 16) | ((element[10] & 0xff) << 8) | (element[11] & 0xff);
+                    String titleName = new String(Arrays.copyOfRange(element, 0x16, 0x90), "UTF-16BE").replace(""+(char)0, "");
+                    lengths.put(i, new Object[]{titleName, titleLength});
+                }
+            } finally {
+                raf.close();
+            }
+        } catch (IOException ex) {
+            logger.warning("Cannot read 04CNTINF.DAT: " + ex.getMessage());
+        }
+        return lengths;
     }
 
     /**

@@ -30,6 +30,8 @@ package org.naurd.media.jsymphonic.title;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.security.SecureRandom;
 import org.naurd.media.jsymphonic.toolBox.CoverArtToolBox;
 import org.naurd.media.jsymphonic.toolBox.DataBaseOmgaudioToolBox;
 
@@ -49,7 +51,7 @@ public class Oma  extends Title{
     protected int version = Oma.ATRAC; // Version of the OMA file (only used when wrapping OMA)
     protected int drm = Oma.NO_DRM; // tell if the file holds DRM (only used when wrapping OMA)
     protected byte[] drmKey = new byte[0x30]; // the key corresponding to the DRM  (only used when wrapping DRMed OMA)
-    protected byte[] contentId = new byte[0x18]; // the content ID written by SonicStage in the EA3 part of the tag, zeros if none (only used when wrapping OMA)
+    protected byte[] fileProperties = null; // the file properties written in the EA3 part of the tag of the file, null if unknown
 
 /* CONSTANT */
     // Versions constant
@@ -87,6 +89,7 @@ public class Oma  extends Title{
 
         // Other info are read in the EA3tag
         readEA3TagInfo();
+        fileProperties = readFileProperties(f);
     }
 
     /**
@@ -117,6 +120,8 @@ public class Oma  extends Title{
         nbOfBytesBeforeMusic = title.getNbOfBytesBeforeMusic();
         nbChannels = title.getNbChannels();
         coverFile = title.getCoverFile(); // The cover is read from the title when the tag is written
+        contentId = title.getContentId();
+        artistReading = title.artistReading;
 
         if(title instanceof Mp3){
             // If wrapped title is an MP3, we should read the layer and the mpegVersion
@@ -137,7 +142,7 @@ public class Oma  extends Title{
             framesNumber = oma.getFramesNumber();
             drm = oma.getDrm();
             drmKey = oma.getDrmKey();
-            contentId = oma.getContentId();
+            fileProperties = oma.fileProperties;
         }
     }
 
@@ -331,11 +336,109 @@ public class Oma  extends Title{
     }
 
     /**
-     * Obtains the content ID written by SonicStage in the file (make only a sense when an OMA is wrapped).
-     * @return The 0x18 bytes of the content ID, as written in the 05CIDLST file. Bytes are zeros if the file has no content ID.
+     * Create a new content ID, as SonicStage does when it transfers a file: a fixed part, then 6 random bytes (2 at
+     * offset 13 and 4 at offset 20). The fixed part is the one of the content IDs created by SonicStage 4.3.
+     *
+     * @return The 0x18 bytes of the content ID.
      */
-    public byte[] getContentId(){
+    public static byte[] newContentId() {
+        byte[] contentId = {0,0,0,0, 0x01,0x0f,0x50,0x00, 0x00,0x04,0x00,0x00, 0x00,0,0,0x57, (byte)0x9d,(byte)0x91,0x63,0x1b, 0,0,0,0};
+        byte[] random = new byte[6];
+        new SecureRandom().nextBytes(random);
+        System.arraycopy(random, 0, contentId, 13, 2);
+        System.arraycopy(random, 2, contentId, 20, 4);
         return contentId;
+    }
+
+    /**
+     * Gives the position of the "EA3" part of the tag of an OMA file (holding the protection, the content ID and the file properties).
+     *
+     * @return The position, or -1 if the file isn't valid.
+     */
+    private static long ea3Position(RandomAccessFile raf) throws IOException {
+        // Header of the "ea3" part: label, version (2 bytes), flags (1 byte), size (4 bytes, 7 bits per byte)
+        byte[] header = new byte[10];
+        raf.seek(0);
+        raf.readFully(header);
+        if(header[0] != 'e' || header[1] != 'a' || header[2] != '3'){
+            return -1;
+        }
+        long position = 10 + (((header[6] & 0x7F) << 21) | ((header[7] & 0x7F) << 14) | ((header[8] & 0x7F) << 7) | (header[9] & 0x7F));
+        // "EA3" part: label, version (1 byte), size (2 bytes), protection (2 bytes), content ID (24 bytes), file properties (4 bytes)
+        byte[] label = new byte[3];
+        raf.seek(position);
+        raf.readFully(label);
+        if(label[0] != 'E' || label[1] != 'A' || label[2] != '3'){
+            return -1;
+        }
+        return position;
+    }
+
+    /**
+     * Read the file properties (format, bitrate, sampling rate,...) written in the EA3 part of the tag of an OMA file.
+     *
+     * @return The 4 bytes of the properties, or null if the file isn't valid.
+     */
+    private static byte[] readFileProperties(File file) {
+        try {
+            RandomAccessFile raf = new RandomAccessFile(file, "r");
+            try {
+                long position = ea3Position(raf);
+                if(position < 0){
+                    return null;
+                }
+                byte[] properties = new byte[4];
+                raf.seek(position + 0x20);
+                raf.readFully(properties);
+                return properties;
+            }
+            finally {
+                raf.close();
+            }
+        }
+        catch(IOException ex) {
+            return null;
+        }
+    }
+
+    /**
+     * Write a content ID in the EA3 part of the tag of an OMA file which has none (files transfered by older versions of JSymphonic).
+     *
+     * @param file The OMA file.
+     * @param contentId The 0x18 bytes of the content ID.
+     * @return True if the content ID has been written, false if the file isn't valid or already has a content ID.
+     */
+    public static boolean writeContentId(File file, byte[] contentId) {
+        try {
+            RandomAccessFile raf = new RandomAccessFile(file, "rw");
+            try {
+                long position = ea3Position(raf);
+                if(position < 0){
+                    return false;
+                }
+                byte[] properties = new byte[0x20];
+                raf.seek(position);
+                raf.readFully(properties);
+                if(properties[6] != (byte)0xFF || properties[7] != (byte)0xFF){
+                    return false;
+                }
+                for(int i = 8; i < 0x20; i++){
+                    if(properties[i] != 0){
+                        return false;
+                    }
+                }
+                raf.seek(position + 8);
+                raf.write(contentId);
+                return true;
+            }
+            finally {
+                raf.close();
+            }
+        }
+        catch(IOException ex) {
+            logger.warning("Cannot write the content ID of '" + file.getPath() + "': " + ex.getMessage());
+            return false;
+        }
     }
 
     /**
@@ -375,6 +478,10 @@ public class Oma  extends Title{
     }
 
     public byte[] getFileProperties(){
+        if(this.fileProperties != null){
+            // Use the properties written in the file (by SonicStage for instance) rather than computing them again
+            return this.fileProperties.clone();
+        }
         byte[] fileProperties = new byte[4]; // value to return
         byte[] buffer1 = new byte[1]; // temp variable
         byte[] buffer2 = new byte[2]; // temp variable
@@ -612,6 +719,12 @@ public class Oma  extends Title{
 
         logInfo = "Scanning file "+sourceFile.getName();
 
+        // The tags missing in the file are empty, as in the database written by SonicStage
+        titleName = "";
+        artistName = "";
+        albumName = "";
+        genre = "";
+
         if(sourceFile.length() <= 0) {
             logger.info(logInfo);
             logger.warning("ERROR: File is empty.");
@@ -728,8 +841,8 @@ public class Oma  extends Title{
                 tagValue = new byte[intTagLength];
                 omaFileStream.read(tagValue); //Reads the value of the tag
                 //這裡有問題，並沒有把讀出的字串用UTF8編碼來處理 Michael
-                // The tagValue may have extra "0x0" at the end, because some Sony's software (like Vaio music transfer) uses fix tag length, so extra space is filled with "0x0". But these extra zeros cause problem when the tag is turn to string, so, they are removed with the method "rtrimZeros".
-                stringTagValue = new String(DataBaseOmgaudioToolBox.rtrimZeros(tagValue),"UTF16"); // Change it for fix Unicode problem by Michael Chen 2008/3/23
+                // The tagValue may have extra "0x0" at the end, because some Sony's software (like Vaio music transfer) uses fix tag length, so extra space is filled with "0x0". These empty characters are removed (an odd number of zeros may be left, the last byte is ignored then).
+                stringTagValue = new String(tagValue, 0, tagValue.length & ~1, "UTF-16BE");
                 stringTagValue = stringTagValue.replace(""+(char)0,""); //Remove empty characters from the TagValue (these characters are due to 16-bits encodage in Ea3Tag)
                 intTagValue = DataBaseOmgaudioToolBox.charBytes2int(tagValue); //also convert to integer if it is a number
 
@@ -747,32 +860,37 @@ public class Oma  extends Title{
                 }
                 if(stringTagId.compareTo("TCON") == 0){
                     genre = stringTagValue;
-                    if(genre.length() == 0){
-                        genre = "unknown genre (JSoma)"; // if an empty genre has been read, we put a default value
-                    }
                     logInfo += " genre:" +stringTagValue;
+                }
+                if(stringTagId.compareTo("TXXX") == 0 && stringTagValue.contains("OMG_TPE1S")){
+                    artistReading = stringTagValue.replace("OMG_TPE1S","");
+                    logInfo += " artistReading:" +artistReading;
                 }
                 if(stringTagId.compareTo("TXXX") == 0 && stringTagValue.contains("OMG_TRACK")){
                     stringTagValue = stringTagValue.replace("OMG_TRACK","");
                     stringTagValue = stringTagValue.replace(" ","");
-                    titleNumber = Integer.parseInt(stringTagValue);
-                    logInfo += " trackNumber:" +titleNumber;
+                    if(stringTagValue.matches("[0-9]+")){ // SonicStage writes an empty value if the track number is unknown
+                        titleNumber = Integer.parseInt(stringTagValue);
+                        logInfo += " trackNumber:" +titleNumber;
+                    }
                 }
                 if(stringTagId.compareTo("TXXX") == 0 && stringTagValue.contains("OMG_TRLDA")){
                     stringTagValue = stringTagValue.replace("OMG_TRLDA","");
                     String[] splitenString = stringTagValue.split("/"); // Date can be on the form "2004/01/01" or "04/01/01"
                     stringTagValue = splitenString[0]; // Only the first value is interesting, the year
                     stringTagValue = stringTagValue.replace(" ","");
-                    if(stringTagValue.length() == 2 && Integer.parseInt(stringTagValue) < 50) {
-                        // If the year is written with two number less than 50 (eg 07) wue suppose that the rigth date is 2007
-                        stringTagValue = "20" + stringTagValue;
+                    if(stringTagValue.matches("[0-9]+")){ // SonicStage writes an empty value if the date is unknown
+                        if(stringTagValue.length() == 2 && Integer.parseInt(stringTagValue) < 50) {
+                            // If the year is written with two number less than 50 (eg 07) wue suppose that the rigth date is 2007
+                            stringTagValue = "20" + stringTagValue;
+                        }
+                        if(stringTagValue.length() == 2 && Integer.parseInt(stringTagValue) >= 50) {
+                            // If the year is written with two number greater than 50 (eg 94) wue suppose that the rigth date is 1994
+                            stringTagValue = "19" + stringTagValue;
+                        }
+                        year = Integer.parseInt(stringTagValue);
+                        logInfo += " year:" +year;
                     }
-                    if(stringTagValue.length() == 2 && Integer.parseInt(stringTagValue) >= 50) {
-                        // If the year is written with two number greater than 50 (eg 94) wue suppose that the rigth date is 1994
-                        stringTagValue = "19" + stringTagValue;
-                    }
-                    year = Integer.parseInt(stringTagValue);
-                    logInfo += " year:" +year;
                 }
                 if(stringTagId.compareTo("TYER") == 0){
                     year = intTagValue;
@@ -1164,8 +1282,17 @@ public class Oma  extends Title{
         }
         stream.write(bytes2); // Write protection
 
-        // Next 24 bytes are only used when file has LSI DRM, not the case here, write zeros
-        DataBaseOmgaudioToolBox.WriteZeros(stream, 24);
+        // Next 24 bytes are the content ID. SonicStage gives one to each file it transfers, the device uses it to find the info of the file in the extended database (A_WM folder)
+        if(gotKey) {
+            // Protected players don't use it
+            DataBaseOmgaudioToolBox.WriteZeros(stream, 24);
+        }
+        else {
+            if(DataBaseOmgaudioToolBox.isZero(contentId)) {
+                contentId = newContentId();
+            }
+            stream.write(contentId);
+        }
 
         // 3rd line contains properties of the file
         // Get the file common properties (format, bitrate and sampling rate) (4 bytes long)

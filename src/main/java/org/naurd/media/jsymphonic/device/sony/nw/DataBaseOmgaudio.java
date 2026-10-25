@@ -64,6 +64,7 @@ public class DataBaseOmgaudio extends DataBase{
     private boolean gotCovers; // True if device can display covers
     private boolean gotSportFeatures; // True if device has sport features
     private boolean extendedDatabase; // True if device uses the extended database layout (NW-A80x, NW-A91x)
+    private DataBaseOmgaudioExtendedToolBox.OldDatabase oldDatabase; // What is kept from the database on the device when it is rewritten (extended database only)
 
     //Other
     private static Logger logger = Logger.getLogger("org.naurd.media.jsymphonic.system.sony.nw.OmaDataBaseGen3");
@@ -147,6 +148,9 @@ System.out.println(titleToUpdate);
 
         // Inform GUI
         genNw.sendTransferStepStarted(NWGenericListener.UPDATING);
+
+        // Read the trees filled in by the device (history, bookmarks,...) and the playlists before the database is erased, to keep them
+        oldDatabase = extendedDatabase ? DataBaseOmgaudioExtendedToolBox.readOldDatabase(omgaudioDir) : null;
         
         //Backup the database if it is not already done
         File backupDir = new File(omgaudioDir + "/db_backup");
@@ -365,7 +369,7 @@ System.out.println(titleToUpdate);
         if(extendedDatabase){
             // Write the trees 2D (history), 10 to 15 (bookmarks) and 2E to 36 (top 100, ratings, genre/year/initial browsing, recent transfers, artist/album with thumbnails)
             try {
-                DataBaseOmgaudioExtendedToolBox.writeExtendedTrees(omgaudioDir, titles);
+                DataBaseOmgaudioExtendedToolBox.writeExtendedTrees(omgaudioDir, titles, oldDatabase);
             } catch (Exception ex) {
                 logger.severe("ERROR: while writting extended tree files: " + ex.getMessage());
                 errorMessage +=  "01TREExx" + java.util.ResourceBundle.getBundle("localization/devicepanel").getString("DevicePanel.err_update_file_error") + "<br>";
@@ -440,6 +444,11 @@ System.out.println(titleToUpdate);
         genNw.sendFileChanged(NWGenericListener.UPDATING, "04PATLST");
         genNw.sendFileProgressChanged(NWGenericListener.UPDATING, 100, 0);
 
+
+        if(extendedDatabase){
+            // Each title needs its own content ID, used in 05CIDLST and in the A_WM folder
+            DataBaseOmgaudioExtendedToolBox.writeMissingContentIds(titles);
+        }
 
         // Write 05CIDLST file
         try {
@@ -594,39 +603,43 @@ System.out.println(titleToUpdate);
         }
 
         try{
-            //Opens the file in stream mode (must be in try-catch)
-            fileStream = sourceFile.toURI().toURL().openStream();
+            //Opens the file in stream mode (must be in try-catch). The data are read with readFully, since read may return less bytes than asked
+            java.io.DataInputStream dataStream = new java.io.DataInputStream(new java.io.BufferedInputStream(new java.io.FileInputStream(sourceFile)));
+            fileStream = dataStream;
 
             // Skip 0x24 bytes
-            fileStream.skip(0x10);
-            fileStream.skip(0x10);
-            fileStream.skip(0x4);
+            dataStream.readFully(new byte[0x24]);
 
             // Read the number of elements in the class
-            fileStream.read(buffer2);
+            dataStream.readFully(buffer2);
             numberOfTitles = DataBaseOmgaudioToolBox.bytes2int(buffer2); // Convert it to int
 
             // Skip bytes to first element
-            fileStream.skip(0x0A);
+            dataStream.readFully(new byte[0x0A]);
 
             // Read each element
             for(int i=1; i <= numberOfTitles; i++){
-                fileStream.skip(6); // Skip "TIT2" and the 3 bytes giving the text-encoding
-                fileStream.read(buffer150);
-                path = new String(DataBaseOmgaudioToolBox.rtrimZeros(buffer150),"UTF16"); // Convert to string
+                dataStream.readFully(new byte[6]); // Skip "TIT2" and the 2 bytes giving the text-encoding
+                dataStream.readFully(buffer150);
+                path = new String(buffer150,"UTF-16BE"); // Convert to string
                 path = path.replace(""+(char)0,""); //Remove empty characters from the TagValue (these characters are due to 16-bits encodage in Ea3Tag)
 
                 if(path.compareTo("") != 0){
                     // If path is path, add it to the list
                     paths.put(i, path);
                 }
-                else{
-                }
             }
 
         }
         catch(Exception e){
-
+            logger.warning("Cannot read 04PATLST.DAT: " + e.getMessage());
+        }
+        finally{
+            try {
+                if(fileStream != null){
+                    fileStream.close();
+                }
+            } catch (IOException ex) {}
         }
         return 0;
     }
